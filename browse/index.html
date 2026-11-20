@@ -2,21 +2,12 @@
 <!-- Adapted from spike-html-hosting-icons (8b8d955): browse/index.html, on web-foundation's full
      entry, its Theme button and theme menu replaced by plain selects, as web-foundation's
      (72e759f) demo/theme.html carries them.
-     The browse page, dev-only and never packed: every glyph of every released set, grouped by set,
-     each set headed by its title, its prefix, its licence, and its upstream, and each glyph shown
-     beside its name in a grid that wraps to the width, so it never scrolls sideways. It is the
-     layer's capture fixture, which mise run screenshots captures and the browser tier checks, and
-     mise run browse serves it for a reader. scripts/served.ts serves it at /browse/: the
-     catalog, /browse/catalog.js, made from sets.json and dist/, and each glyph the built module
-     /dist/<set>/<icon>.js, imported as a consumer imports it, its default export the markup.
-     The page loads the foundation as a site loads it: page-full.css, then register-full.js and
-     preferences.js render-blocking, so every built-in profile is registered and the stored choice
-     applies before first paint. The header's selects, choice.js, show the choice and apply and
-     save a change. The query's palette, space, type, and scheme set the root's data-palette,
-     data-space, data-type, and data-scheme before the modules run, which a stored choice replaces.
-     window.errors collects every error and unhandled rejection the page raises; window.ready
-     settles once every glyph is in the page. The foundation's bare specifiers map onto /deps/,
-     where the server answers with the installed package's dist/, as its exports do. -->
+     The browse page, dev-only and never packed: every glyph of every released set, by set, each
+     beside its name. scripts/served.ts serves it at /browse/, for mise run browse, the browser
+     tier, and mise run screenshots. It loads the foundation as a site does, every profile
+     registered and the stored choice applied before first paint; the query's palette, space,
+     type, and scheme set the root's attributes first, which a stored choice replaces.
+     window.errors collects the page's errors; window.ready settles once every glyph is in it. -->
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -101,7 +92,7 @@
         gap: var(--space-xs);
         margin: 0;
         padding: var(--space-xs);
-        border: 1px solid var(--border);
+        border: var(--line-s) solid var(--border);
         text-align: center;
       }
       .glyph {
@@ -116,6 +107,8 @@
         max-inline-size: 100%;
       }
     </style>
+    <!-- The foundation's bare specifiers, onto the installed package's dist/, as its exports map
+         them; the server answers /deps/. -->
     <script type="importmap">
       {
         "imports": {

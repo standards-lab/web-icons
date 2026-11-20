@@ -1,17 +1,10 @@
 // Adapted from spike-html-hosting-icons (8b8d955): scripts/generate.ts.
-// The icons generator: an Iconify set, read by its name, into one ES module per icon, each
-// default-exporting the icon as one complete svg string, with a declaration that types it as a
-// string, and the set's LICENSE beside them with the line that names where it came from.
-// scripts/build.ts runs it on the released sets, which sets.json lists; the unit tier runs it on
-// the fixture sets in test/fixtures/sets/ too, so any set's name works, not only a released one's.
-//
-// A set is read from a directory in @iconify-json/*'s layout: icons.json, the IconifyJSON icon
-// data, and info.json, the IconifyInfo that carries the set's licence. A released set's directory
-// is its @iconify-json/<name> package; @iconify-json/* ships no licence text, only the SPDX
-// identifier and a URL, so the text is the upstream repository's LICENSE, held in licenses/<name>/
-// byte for byte, and sets.json records its sha256, its repository, and its commit.
-//
-// The generator reads no network: every set is a devDependency or a fixture on disk.
+// The icons generator: an Iconify set, from a directory in @iconify-json/*'s layout (icons.json
+// and info.json), into one ES module per icon default-exporting its svg string, a declaration
+// typing it as a string, and the set's LICENSE with a provenance line. @iconify-json/* ships no
+// licence text, so a released set's LICENSE is the upstream's, held in licenses/<name>/ byte for
+// byte and checked against the sha256 sets.json records. scripts/build.ts runs it on the released
+// sets, and the unit tier on test/fixtures/sets/ too. It reads no network.
 
 import { createHash } from "node:crypto";
 import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";

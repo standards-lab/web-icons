@@ -1,23 +1,11 @@
 // Adapted from spike-html-hosting-sdk (f49087e): src/icons.ts, its fill as a Vite plugin of its
 // own, loading the icons from this package rather than from the site's root.
-// The marker fill, iconFill(), imported from @standards-lab/web-icons/vite: a Vite plugin that
-// replaces every glyph marker, an empty <svg data-icon="<set>/<name>"></svg>, in every HTML page
-// Vite serves in dev or writes at build, with that icon's svg, the default export of this
-// package's module <set>/<name>: 1em square, drawn in currentColor, aria-hidden and
-// focusable="false". A class on the marker carries over onto the svg, so a page styles a glyph
-// where it places it; any other attribute on the marker is dropped, the icon's own standing. The
-// page gains the icon's markup alone, never a script, and a page with no marker passes through
-// unchanged.
-//
-// A marker whose name isn't <set>/<name>, each a run of lowercase letters, digits, and hyphens, or
-// whose icon this package doesn't hold, fails the page, naming the page and the icon, and so does
-// an svg holding data-icon that isn't a marker, self-closed, unquoted, or not empty, naming the
-// page and its tag, so no marker reaches a page empty. The build fails with that message, and in
-// dev the page's request fails with it, so nothing reaches the browser half-filled. An HTML
-// comment's text is neither filled nor checked, so a comment may show a marker.
-//
-// The icons are this package's: each loads from the module beside this one, dist/<set>/<name>.js,
-// whatever the consuming project installs, so the plugin and its icons are always one release.
+// The marker fill, iconFill(), from @standards-lab/web-icons/vite: in every HTML page Vite serves
+// in dev or writes at build, each glyph marker, an empty <svg data-icon="<set>/<name>"></svg>, is
+// replaced by that icon's svg, and the page gains no script. A marker this package can't fill, or
+// an svg holding data-icon that isn't a marker, fails the page, so none reaches a page empty; a
+// comment's text is neither filled nor checked. The icons load from the modules beside this one,
+// whatever the consumer installs, so the plugin and its icons are always one release.
 
 import type { Plugin } from "vite";
 
@@ -67,9 +55,9 @@ function packageIcons(): LoadIcon {
 }
 
 /** The page's html, page its path as a failure names it, with every glyph marker replaced by its
- * icon's svg from load, the marker's class carried onto it; rejects on a marker whose name isn't
- * <set>/<name> or whose icon load can't give, naming the page and the icon, and on an svg holding
- * data-icon that isn't a marker, naming the page and its tag. */
+ * icon's svg from load, the marker's class carried onto it and its other attributes dropped;
+ * rejects on a marker whose name isn't <set>/<name> or whose icon load can't give, naming the page
+ * and the icon, and on an svg holding data-icon that isn't a marker, naming the page and its tag. */
 async function fillIcons(html: string, page: string, load: LoadIcon): Promise<string> {
   const comments = [...html.matchAll(comment)].map(({ index, 0: text }) => [
     index,
