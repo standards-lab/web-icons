@@ -116,10 +116,16 @@ const iconDeclaration = "declare const svg: string;\nexport default svg;\n";
 export const provenanceFile = "LICENSE.provenance";
 
 /** Generates the set into `out`/<name>/: <icon>.js and <icon>.d.ts for every icon and alias the
- * set holds, hidden ones included, so a name the set has ever answered keeps resolving; its
- * LICENSE, copied as is; and the provenance line. Throws, generating nothing, on a set whose
- * licence isn't accepted, whose prefix isn't its name, or holding an icon whose name isn't a safe
- * file name or whose markup isn't drawn in currentColor. Returns the icon names, sorted. */
+ * set marks visible; its LICENSE, copied as is; and the provenance line. Throws, generating
+ * nothing, on a set whose licence isn't accepted, whose prefix isn't its name, or holding a
+ * visible icon whose name isn't a safe file name or whose markup isn't drawn in currentColor.
+ * Returns the icon names, sorted.
+ *
+ * Visible is Iconify's, read from the icon's resolved data: hidden is the icon's own flag, and an
+ * alias that sets none takes its parent's, as @iconify/utils merges an alias onto its parent. So an
+ * alias of a shipped icon ships, carrying its parent's markup, and an alias of a hidden icon is
+ * hidden too and doesn't ship. A hidden icon is dropped before the name and markup checks: it never
+ * reaches the output, so neither is checked. */
 export function generateSet(source: SetSource, out: string): string[] {
   const { name, dir } = source;
   const info: IconifyInfo = JSON.parse(readFileSync(join(dir, "info.json"), "utf8"));
@@ -133,6 +139,7 @@ export function generateSet(source: SetSource, out: string): string[] {
   const modules = new Map<string, string>();
   parseIconSet(data, (icon, iconData) => {
     if (iconData === null) throw new Error(`icon set ${name}: ${icon} is listed as not found`);
+    if (iconData.hidden) return;
     if (!iconName.test(icon)) throw new Error(`icon set ${name}: ${icon} isn't a safe file name`);
     const svg = iconSvg(iconData);
     if (!svg.includes("currentColor")) {

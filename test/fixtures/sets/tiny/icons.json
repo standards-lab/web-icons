@@ -16,6 +16,9 @@
   "aliases": {
     "point": {
       "parent": "dot"
+    },
+    "halo": {
+      "parent": "ring"
     }
   },
   "width": 16,

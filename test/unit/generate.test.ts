@@ -20,6 +20,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { after, describe, test } from "node:test";
+import type { IconifyJSON } from "@iconify/types";
 import {
   generateSet,
   generateSets,
@@ -81,8 +82,8 @@ describe("a fixture set", () => {
   const out = scratchDir();
   const names = generateSet(fixture("tiny"), out);
 
-  test("generates one module per icon and alias, hidden ones included", () => {
-    assert.deepEqual(names, ["bar-wide", "dot", "point", "ring"]);
+  test("generates one module per visible icon and per alias of one", () => {
+    assert.deepEqual(names, ["bar-wide", "dot", "point"]);
     const files = names.flatMap((name) => [`${name}.d.ts`, `${name}.js`]);
     assert.deepEqual(
       readdirSync(join(out, "tiny")).sort(),
@@ -95,7 +96,6 @@ describe("a fixture set", () => {
       "bar-wide": "0 0 24 16",
       dot: "0 0 16 16",
       point: "0 0 16 16",
-      ring: "0 0 16 16",
     };
     for (const name of names) {
       const svg = await importIcon(join(out, "tiny", `${name}.js`));
@@ -117,7 +117,15 @@ describe("a fixture set", () => {
     }
   });
 
-  test("an alias carries its parent's markup", async () => {
+  test("a hidden icon doesn't ship", () => {
+    assert.equal(existsSync(join(out, "tiny/ring.js")), false);
+  });
+
+  test("an alias of a hidden icon is hidden too, as Iconify resolves it, and doesn't ship", () => {
+    assert.equal(existsSync(join(out, "tiny/halo.js")), false);
+  });
+
+  test("an alias of a shipped icon carries its parent's markup", async () => {
     assert.equal(
       await importIcon(join(out, "tiny/point.js")),
       await importIcon(join(out, "tiny/dot.js")),
@@ -186,11 +194,18 @@ describe("the released sets", () => {
     assert.deepEqual(readdirSync(dist).sort(), Object.keys(sets).sort());
   });
 
-  test("the build holds one module and one declaration per Octicons icon and alias", () => {
-    const data = JSON.parse(
+  test("the build holds one module and one declaration per visible Octicons icon and its aliases", () => {
+    const data: IconifyJSON = JSON.parse(
       readFileSync(join(root, "node_modules/@iconify-json/octicon/icons.json"), "utf8"),
     );
-    const icons = [...Object.keys(data.icons), ...Object.keys(data.aliases ?? {})].sort();
+    const visible = Object.keys(data.icons).filter((icon) => !data.icons[icon].hidden);
+    const aliases = Object.entries(data.aliases ?? {})
+      .filter(([, alias]) => visible.includes(alias.parent))
+      .map(([alias]) => alias);
+    const icons = [...visible, ...aliases].sort();
+    assert.equal(icons.length, 803);
+    for (const icon of ["question-16", "gear-16", "x-16"]) assert.ok(icons.includes(icon), icon);
+    assert.ok(!icons.includes("alert"));
     const files = readdirSync(join(dist, "octicon"));
     assert.deepEqual(
       files
