@@ -165,6 +165,21 @@ describe("a fixture set", () => {
       /icon set tiny: dot isn't drawn in currentColor/,
     );
   });
+
+  test("an icon whose name isn't a safe file name is refused, naming it, leaving the output empty", () => {
+    for (const icon of ["../evil", "Bad_Name"]) {
+      const dir = join(scratchDir(), "tiny");
+      cpSync(join(fixtures, "tiny"), dir, { recursive: true });
+      const data = JSON.parse(readFileSync(join(dir, "icons.json"), "utf8"));
+      data.icons[icon] = { body: '<circle cx="8" cy="8" r="4" fill="currentColor"/>' };
+      writeFileSync(join(dir, "icons.json"), JSON.stringify(data));
+      const out = scratchDir();
+      assert.throws(() => generateSet({ ...fixture("tiny"), dir }, out), {
+        message: `icon set tiny: ${icon} isn't a safe file name`,
+      });
+      assert.deepEqual(readdirSync(out), []);
+    }
+  });
 });
 
 describe("a build of fixture sets", () => {
