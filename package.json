@@ -1,0 +1,41 @@
+{
+  "name": "@standards-lab/web-icons",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "default": "./dist/*.js"
+    }
+  },
+  "peerDependencies": {
+    "vite": "^8.3.8"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@iconify-json/octicon": "1.2.40",
+    "@iconify/types": "2.0.0",
+    "@iconify/utils": "3.1.7",
+    "@standards-lab/web-foundation": "github:standards-lab/web-foundation#v0.4.0",
+    "@standards-lab/web-tooling": "github:standards-lab/web-tooling#v0.1.0",
+    "@types/node": "26.6.6",
+    "eslint": "10.15.0",
+    "eslint-import-resolver-typescript": "4.4.5",
+    "eslint-plugin-boundaries": "7.4.4",
+    "eslint-plugin-import-x": "4.18.1",
+    "globals": "17.14.0",
+    "prettier": "3.10.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.73.0",
+    "vite": "8.3.8"
+  }
+}
