@@ -2,10 +2,12 @@
 // moved to the release rule (test/unit/release.test.ts).
 // The pack: pnpm pack's tarball of the build, extracted into a scratch consumer's node_modules in
 // TMPDIR, removed after. Its files are the build and the files every pack carries, never the browse
-// page or the scripts that serve it; and an icon resolves from it by its set and name, with no
+// page or the scripts that serve it; an icon resolves from it by its set and name, with no
 // extension, as a consumer imports it, in node to its module and under TypeScript's types
-// condition to its declaration, which types the icon as a string. It packs the dist/ mise run
-// build writes, and reads no network.
+// condition to its declaration, which types the icon as a string; and the plugin resolves from
+// .../vite to its module and its declaration, and fills a marker from the installed package's own
+// icons, in a consumer that installs no Vite. It packs the dist/ mise run build writes, and reads
+// no network.
 
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
@@ -19,6 +21,7 @@ import { listFiles, packageName as name } from "./release.ts";
 
 const root = join(import.meta.dirname, "../..");
 const icon = `${name}/octicon/x-16`;
+const plugin = `${name}/vite`;
 
 // The consumer: a scratch directory with the tarball's package/ as its installed package.
 let scratch: string;
@@ -80,6 +83,8 @@ describe("the pack", () => {
   test("is package.json, README.md, LICENSE, and the build, never the browse page or its scripts", () => {
     const built = listFiles(join(root, "dist")).map((path) => `dist/${path}`);
     assert.ok(built.includes("dist/octicon/x-16.js"), "mise run build wrote no dist/octicon/");
+    assert.ok(built.includes("dist/vite.js"), "mise run build wrote no plugin");
+    assert.ok(built.includes("dist/vite.d.ts"), "mise run build wrote no plugin declaration");
     assert.deepEqual(
       listFiles(installed),
       [...built, "LICENSE", "README.md", "package.json"].sort(),
@@ -121,5 +126,37 @@ describe("the pack", () => {
     assert.deepEqual(declarations, ["dist/octicon/x-16.d.ts"]);
     const wrong = typeCheck(`import x from "${icon}";\nexport const n: number = x;\n`);
     assert.deepEqual(wrong.messages, ["Type 'string' is not assignable to type 'number'."]);
+  });
+
+  test("the plugin resolves from .../vite to its module, and under the types condition to its declaration", () => {
+    assert.equal(resolveFromConsumer(plugin), "dist/vite.js");
+    assert.equal(resolveFromConsumer(plugin, ["--conditions=types"]), "dist/vite.d.ts");
+  });
+
+  test("the plugin fills a marker with the installed package's icon, with no Vite installed", () => {
+    assert.ok(!readdirSync(join(consumer, "node_modules")).includes("vite"));
+    const filled = execFileSync(
+      process.execPath,
+      [
+        "--input-type=module",
+        "-e",
+        `const { iconFill } = await import(process.argv[1]);
+const html = '<svg data-icon="octicon/x-16"></svg>';
+process.stdout.write(await iconFill().transformIndexHtml.handler(html, { path: "/index.html" }));`,
+        plugin,
+      ],
+      { cwd: consumer, encoding: "utf8" },
+    );
+    const svg = execFileSync(
+      process.execPath,
+      [
+        "--input-type=module",
+        "-e",
+        "process.stdout.write((await import(process.argv[1])).default)",
+        icon,
+      ],
+      { cwd: consumer, encoding: "utf8" },
+    );
+    assert.equal(filled, svg);
   });
 });

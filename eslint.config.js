@@ -1,4 +1,5 @@
 // Adapted from web-foundation (72e759f): eslint.config.js, its layer table cut to the icons'.
+// Adapted from web-components (a659353): eslint.config.js, its policies naming a package.
 // The lint the check runs: the recommended rules, the layer's imports in src/, and every .css
 // import a CSS module script. The icon modules are the generator's output, in dist/, which ESLint
 // doesn't read; the layer table judges the handwritten sources in src/.
@@ -35,8 +36,9 @@ const cssImports = [
   })),
 ];
 
-// The layer table cut to the icons: its sources, which may import nothing but themselves.
-export const layers = [{ name: "icons", path: "src", may: ["icons"] }];
+// The layer table cut to the icons: its sources, the plugin, which may import themselves and, by
+// name, vite, the package's one peer, for the plugin's types.
+export const layers = [{ name: "icons", path: "src", may: ["icons", "vite"] }];
 
 // The layer is an element by its directory, matched from the root (partialMatch false), with a
 // second pattern for a file in a directory whose name starts with a dot, which micromatch's **
@@ -48,10 +50,17 @@ const elements = layers.map(({ name, path }) => ({
 }));
 
 // The rule's default is disallow, and it checks every origin (a package is external) and local
-// files no element holds: an import passes only when a policy names its target.
+// files no element holds: an import passes only when a policy names its target, the layer or a
+// package the table names, which the rule matches by its name, any subpath of it.
 const policies = layers.map(({ name, may }) => ({
   from: { element: { type: name } },
-  allow: { to: may.map((target) => ({ element: { type: target } })) },
+  allow: {
+    to: may.map((target) =>
+      target === name
+        ? { element: { type: target } }
+        : { module: { origin: "external", source: target } },
+    ),
+  },
 }));
 
 // A declaration file (a handwritten .d.ts) has no runtime, so an import that resolves to one passes

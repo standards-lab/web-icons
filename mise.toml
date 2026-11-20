@@ -51,18 +51,29 @@ description = "Lint the GitHub Actions workflows with actionlint"
 run = "actionlint"
 
 [tasks.types]
-description = "Type-check the repository's JavaScript and the TypeScript of its scripts and suite with tsc, never emitting"
-depends = ["preflight"]
-run = "tsc -p ."
+description = "Type-check the plugin's sources and the scripts and suite with tsc, never emitting"
+depends = ["types:src", "types:test"]
 
-# The generator runs as TypeScript under Node's type stripping, on the installed @iconify-json sets.
-[tasks.build]
-description = "Generate the released icon sets, sets.json's, into a fresh dist/"
+[tasks."types:src"]
+description = "Type-check the plugin's sources with tsc"
 depends = ["preflight"]
-run = "node scripts/build.ts"
+run = "tsc --noEmit -p ."
+
+# The suite imports the package's own exports, which resolve to dist/'s declarations.
+[tasks."types:test"]
+description = "Type-check the scripts, the suite, and the Vite fixtures with tsc, under tsconfig.test.json"
+depends = ["preflight", "build"]
+run = "tsc -p tsconfig.test.json"
+
+# The generator runs as TypeScript under Node's type stripping, on the installed @iconify-json sets;
+# tsc then emits the plugin beside the sets.
+[tasks.build]
+description = "Generate the released icon sets, sets.json's, into a fresh dist/, and build the plugin beside them"
+depends = ["preflight"]
+run = ["node scripts/build.ts", "tsc -p ."]
 
 [tasks."test:unit"]
-description = "Run the unit tier on the generator, its fixture sets, the release's manifest, and a pack of the build"
+description = "Run the unit tier on the generator, its fixture sets, the plugin and its Vite fixtures, the release's manifest, and a pack of the build"
 depends = ["preflight", "build"]
 run = "node --test 'test/unit/*.test.ts'"
 

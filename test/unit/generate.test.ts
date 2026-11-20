@@ -190,8 +190,12 @@ describe("the released sets", () => {
   const sets = JSON.parse(readFileSync(join(root, "sets.json"), "utf8"));
   const dist = join(root, "dist");
 
-  test("are built each into its own directory, and nothing else", () => {
-    assert.deepEqual(readdirSync(dist).sort(), Object.keys(sets).sort());
+  test("are built each into its own directory, beside the plugin and nothing else", () => {
+    const entries = readdirSync(dist, { withFileTypes: true });
+    const directories = entries.filter((entry) => entry.isDirectory()).map(({ name }) => name);
+    const files = entries.filter((entry) => !entry.isDirectory()).map(({ name }) => name);
+    assert.deepEqual(directories.sort(), Object.keys(sets).sort());
+    assert.deepEqual(files.sort(), ["vite.d.ts", "vite.js"]);
   });
 
   test("the build holds one module and one declaration per visible Octicons icon and its aliases", () => {
