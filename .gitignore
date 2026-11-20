@@ -10,6 +10,8 @@ node_modules
 dist/
 # A pack of the build.
 *.tgz
+# mise run screenshots --dir captures' files.
+captures/
 
 # Editor and OS.
 *.swp
