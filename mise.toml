@@ -1,5 +1,6 @@
 # Adapted from web-foundation (72e759f): mise.toml, its pins, on the icons generator's build.
-# Adapted from spike-html-hosting-icons (8b8d955): mise.toml, its build and unit tier.
+# Adapted from spike-html-hosting-icons (8b8d955): mise.toml, its build, unit and browser tiers,
+# browse, and screenshots, on web-tooling's web-screenshots bin.
 # Tasks never install a missing tool; mise run install is the one task that reads the network.
 [settings]
 task.run_auto_install = false
@@ -51,8 +52,8 @@ description = "Lint the GitHub Actions workflows with actionlint"
 run = "actionlint"
 
 [tasks.types]
-description = "Type-check the plugin's sources and the scripts and suite with tsc, never emitting"
-depends = ["types:src", "types:test"]
+description = "Type-check the plugin's sources, the scripts and suite, and the browse page's modules with tsc, never emitting"
+depends = ["types:src", "types:test", "types:browse"]
 
 [tasks."types:src"]
 description = "Type-check the plugin's sources with tsc"
@@ -64,6 +65,11 @@ run = "tsc --noEmit -p ."
 description = "Type-check the scripts, the suite, and the Vite fixtures with tsc, under tsconfig.test.json"
 depends = ["preflight", "build"]
 run = "tsc -p tsconfig.test.json"
+
+[tasks."types:browse"]
+description = "Type-check the browse page's modules with tsc, under the DOM's lib, never emitting"
+depends = ["preflight"]
+run = "tsc -p browse"
 
 # The generator runs as TypeScript under Node's type stripping, on the installed @iconify-json sets;
 # tsc then emits the plugin beside the sets.
@@ -77,15 +83,35 @@ description = "Run the unit tier on the generator, its fixture sets, the plugin 
 depends = ["preflight", "build"]
 run = "node --test 'test/unit/*.test.ts'"
 
-# The tier's cases arrive with the browse page; until then node --test finds none and passes.
+# The browse page imports the built modules, so the tier runs on dist/.
 [tasks."test:browser"]
-description = "Run the browser tier on dist/ in the pinned chrome-headless-shell"
+description = "Run the browser tier on the browse page, over dist/, in the pinned chrome-headless-shell, and the screenshots command once, its captures under a scratch TMPDIR"
 depends = ["preflight browser", "build"]
 run = "BROWSER_EXECUTABLE=$(mise which chrome-headless-shell) node --test 'test/browser/*.test.ts'"
 
 [tasks.check]
 description = "Run every check; reads no network; writes dist/"
 depends = ["lint", "types", "build", "test:unit", "test:browser"]
+
+# The browse page, served as the browser tier serves it, until interrupted: a reader's look at
+# every released glyph, never part of the package.
+[tasks.browse]
+description = "Serve the browse page over dist/ on a free loopback port and print its URL; stop with Ctrl-C"
+depends = ["preflight", "build"]
+run = "node scripts/browse.ts"
+
+# Never a dependency of check: a reviewer's look at the browse page, not a test. The capture is
+# web-tooling's web-screenshots, on scripts/screenshots.config.ts; its files go to a fresh
+# directory under TMPDIR unless --dir names one, and captures/ is gitignored for that. The browser
+# tier runs it once (test/browser/screenshots.test.ts).
+[tasks.screenshots]
+description = "Capture the browse page whole, wide and narrow, light and dark, inline in kitty: at the defaults, or --palette/--space/--type <name>, or --all for every profile; --scheme light|dark narrows it; --output terminal|directory|browser and --dir <path> choose where they go; --keep leaves the captures"
+depends = ["preflight browser", "build"]
+# The tooling's bin over the capture description; the task's arguments follow it, with or without
+# a leading --.
+# raw: with dependencies, mise prefixes a task's output through a pipe; icat needs the terminal.
+raw = true
+run = "BROWSER_EXECUTABLE=$(mise which chrome-headless-shell) pnpm exec web-screenshots scripts/screenshots.config.ts"
 
 [tasks.install]
 description = "Install the pins and node_modules, the foundation and the tooling at their tags; reads the network"

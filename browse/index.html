@@ -1,0 +1,160 @@
+<!doctype html>
+<!-- Adapted from spike-html-hosting-icons (8b8d955): browse/index.html, on web-foundation's full
+     entry, its Theme button and theme menu replaced by plain selects, as web-foundation's
+     (72e759f) demo/theme.html carries them.
+     The browse page, dev-only and never packed: every glyph of every released set, grouped by set,
+     each set headed by its title, its prefix, its licence, and its upstream, and each glyph shown
+     beside its name in a grid that wraps to the width, so it never scrolls sideways. It is the
+     layer's capture fixture, which mise run screenshots captures and the browser tier checks, and
+     mise run browse serves it for a reader. scripts/served.ts serves it at /browse/: the
+     catalog, /browse/catalog.js, made from sets.json and dist/, and each glyph the built module
+     /dist/<set>/<icon>.js, imported as a consumer imports it, its default export the markup.
+     The page loads the foundation as a site loads it: page-full.css, then register-full.js and
+     preferences.js render-blocking, so every built-in profile is registered and the stored choice
+     applies before first paint. The header's selects, choice.js, show the choice and apply and
+     save a change. The query's palette, space, type, and scheme set the root's data-palette,
+     data-space, data-type, and data-scheme before the modules run, which a stored choice replaces.
+     window.errors collects every error and unhandled rejection the page raises; window.ready
+     settles once every glyph is in the page. The foundation's bare specifiers map onto /deps/,
+     where the server answers with the installed package's dist/, as its exports do. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>web-icons: browse</title>
+    <script>
+      window.errors = [];
+      window.addEventListener("error", (event) => window.errors.push(String(event.message)));
+      window.addEventListener("unhandledrejection", (event) =>
+        window.errors.push(String(event.reason)),
+      );
+      {
+        const query = new URLSearchParams(location.search);
+        const attributes = { palette: "data-palette", space: "data-space", type: "data-type", scheme: "data-scheme" };
+        for (const [key, attribute] of Object.entries(attributes)) {
+          const value = query.get(key);
+          if (value !== null) document.documentElement.setAttribute(attribute, value);
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="/deps/@standards-lab/web-foundation/dist/page-full.css" />
+    <style>
+      /* The page's layout: the header's title and selects in a row that wraps, then each set's
+         section, its glyphs in a grid of cells as many as the width holds, two to a row at 390px,
+         and never wider than the page. A glyph is drawn at 2rem in the text's color, which its
+         markup's currentColor follows; a name is set small and breaks only at the <wbr> browse.js
+         puts after each of its hyphens, never within a word. So a cell's minimum is its padding
+         and 6.5rem of name: the longest word with its hyphen, "accessibility-", is 14 characters
+         of monospace at 0.75rem, about 6.2rem, and the cell's border is 2px. Three cells to a row
+         at 390px would leave each name less than 5rem, so the minimum gives up the third. */
+      body {
+        display: grid;
+        align-content: start;
+        gap: var(--space-l);
+        padding: var(--space-m);
+      }
+      body > header,
+      form[data-choice] {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: end;
+        justify-content: space-between;
+        gap: var(--space-s);
+      }
+      form[data-choice] {
+        justify-content: start;
+      }
+      main,
+      section {
+        display: grid;
+        gap: var(--space-m);
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+      .about {
+        display: grid;
+        grid-template-columns: max-content minmax(0, 1fr);
+        gap: var(--space-xs) var(--space-s);
+        margin: 0;
+      }
+      .about :is(dt, dd) {
+        margin: 0;
+      }
+      .about dd {
+        overflow-wrap: anywhere;
+      }
+      .glyphs {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(6.5rem + 2 * var(--space-xs))), 1fr));
+        gap: var(--space-xs);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .glyphs li {
+        display: grid;
+        justify-items: center;
+        align-content: start;
+        gap: var(--space-xs);
+        margin: 0;
+        padding: var(--space-xs);
+        border: 1px solid var(--border);
+        text-align: center;
+      }
+      .glyph {
+        display: flex;
+        font-size: 2rem;
+      }
+      .glyphs code {
+        font-size: 0.75rem;
+        overflow-wrap: normal;
+        word-break: normal;
+        min-inline-size: 0;
+        max-inline-size: 100%;
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "@standards-lab/web-foundation/": "/deps/@standards-lab/web-foundation/dist/"
+        }
+      }
+    </script>
+    <script type="module" blocking="render" src="/deps/@standards-lab/web-foundation/dist/register-full.js"></script>
+    <script type="module" blocking="render" src="/deps/@standards-lab/web-foundation/dist/preferences.js"></script>
+    <script type="module" src="./browse.js"></script>
+    <script type="module" src="./choice.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>web-icons</h1>
+      <form data-choice>
+        <div class="field">
+          <label for="color">Color</label>
+          <select id="color" name="color"></select>
+        </div>
+        <div class="field">
+          <label for="scheme">Scheme</label>
+          <select id="scheme" name="scheme"></select>
+        </div>
+        <div class="field">
+          <label for="space">Space</label>
+          <select id="space" name="space"></select>
+        </div>
+        <div class="field">
+          <label for="type">Type</label>
+          <select id="type" name="type"></select>
+        </div>
+      </form>
+    </header>
+    <main>
+      <p>
+        Every glyph of every released set, by its name, as
+        <code>@standards-lab/web-icons/&lt;set&gt;/&lt;name&gt;</code> imports it.
+      </p>
+    </main>
+  </body>
+</html>

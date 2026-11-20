@@ -1,0 +1,484 @@
+// Adapted from spike-html-hosting-icons (8b8d955): test/browser/browse.test.ts, on web-tooling
+// and web-foundation's registry key, with the selects' cases in place of the theme menu.
+// The browse page, browse/index.html, served as mise run browse serves it, by scripts/served.ts,
+// over the dist/ mise run build writes, through what the page shows: every module the build wrote
+// for every released set appears once, in its set's section, beside its name, and the section
+// names the set's licence and its upstream tag, as sets.json and the set's info.json give them;
+// each glyph is its module's default export as markup, an svg hidden from assistive technology and
+// out of the tab order, drawn in currentColor, so its paint follows the text's color; the page
+// renders in every profile the foundation's full entry registers, light and dark, at 1280 and 390
+// px, with no sideways scroll, each glyph's name broken only after a hyphen and never wider than
+// its cell, the glyphs' paint the text's in each and the schemes' backgrounds apart; a dark scheme
+// the query names reaches the first load's glyphs; the header's selects list the registered
+// profiles, show the stored choice, apply and save a change at once, follow another tab's save,
+// and with nothing stored show the query's profile; the page raises no error; and no request the
+// page makes leaves the local origin. A fixture set whose licence has an SPDX identifier and no
+// URL, served in place of the released sets, is labelled by its identifier.
+
+import assert from "node:assert/strict";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
+import { after, before, describe, test } from "node:test";
+
+import { launch, SETTLED, until } from "@standards-lab/web-tooling/browser.js";
+import type { Browser, Page } from "@standards-lab/web-tooling/browser.js";
+import { serve } from "@standards-lab/web-tooling/server.js";
+import type { Server } from "@standards-lab/web-tooling/server.js";
+
+import type { IconifyInfo } from "@iconify/types";
+import type { CatalogSet } from "../../browse/catalog.d.ts";
+import { generateSet } from "../../scripts/generate.ts";
+import { CATALOG, catalog, PAGE, root, served } from "../../scripts/served.ts";
+
+/** The registry's names by facet, the first of each the default. */
+interface Registry {
+  color: string[];
+  space: string[];
+  type: string[];
+}
+
+/** One run: a profile's facets and scheme, and a width. */
+interface Run {
+  palette: string;
+  space: string;
+  type: string;
+  scheme: string;
+  width: number;
+}
+
+/** Every palette at the other facets' defaults, then each other space and type, each light and
+ * dark, at 1280 and 390 px. */
+function runs(registry: Registry): Run[] {
+  const [palette] = registry.color;
+  const [space] = registry.space;
+  const [type] = registry.type;
+  const profiles = [
+    ...registry.color.map((name) => ({ palette: name, space, type })),
+    ...registry.space.slice(1).map((name) => ({ palette, space: name, type })),
+    ...registry.type.slice(1).map((name) => ({ palette, space, type: name })),
+  ];
+  return profiles.flatMap((profile) =>
+    ["light", "dark"].flatMap((scheme) =>
+      [1280, 390].map((width) => ({ ...profile, scheme, width })),
+    ),
+  );
+}
+
+/** The viewport's size. */
+async function resize(page: Page, width: number, height = 800): Promise<void> {
+  await page.cdp("Emulation.setDeviceMetricsOverride", {
+    width,
+    height,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+  await until(page, `innerWidth === ${width} && innerHeight === ${height}`);
+}
+
+/** Every released set's icons, as `<set>/<name>`, in the catalog's order. */
+const released = catalog(root).flatMap(({ name, icons }) => icons.map((icon) => `${name}/${icon}`));
+
+/** Each released icon's module's default export, by `<set>/<name>`, as node imports it. */
+const modules: Record<string, string> = Object.fromEntries(
+  await Promise.all(
+    released.map(async (icon) => {
+      const url = pathToFileURL(join(root, "dist", `${icon}.js`)).href;
+      const { default: svg } = (await import(url)) as { default: string };
+      return [icon, svg] as const;
+    }),
+  ),
+);
+
+/** The glyphs, in a page expression: each list item of a set's section. */
+const ITEMS = `[...document.querySelectorAll("section .glyphs > li")]`;
+
+/**
+ * Each name broken within a word, or wider than its box, in a page expression: a run of a name's
+ * text up to and including its next hyphen whose characters lie on more than one line, or a name
+ * element that scrolls. A name may break only after a hyphen, so each such run sits on one line,
+ * and its longest word fits its cell.
+ */
+const BROKEN = `${ITEMS}.flatMap((item) => {
+  const name = item.querySelector(":scope > code");
+  const found = [];
+  if (name.scrollWidth > name.clientWidth) {
+    found.push(item.dataset.icon + " is wider than its box by " + (name.scrollWidth - name.clientWidth) + "px");
+  }
+  const walker = document.createTreeWalker(name, NodeFilter.SHOW_TEXT);
+  const range = document.createRange();
+  for (let text = walker.nextNode(); text !== null; text = walker.nextNode()) {
+    for (const match of text.data.matchAll(/[^-]+-?|-/g)) {
+      range.setStart(text, match.index);
+      range.setEnd(text, match.index + match[0].length);
+      const lines = new Set([...range.getClientRects()].map(({ top }) => Math.round(top)));
+      if (lines.size > 1) found.push(item.dataset.icon + " breaks within " + JSON.stringify(match[0]));
+    }
+  }
+  return found;
+})`;
+
+/**
+ * Each glyph whose paint isn't the text's, in a page expression: an element of the glyph's svg
+ * with a fill or a stroke whose computed value isn't the computed color of its list item, or a
+ * glyph with no such element, which would hold nothing to compare. The glyph is drawn only through
+ * currentColor, so each such value resolves to that color.
+ */
+const UNFOLLOWED = `${ITEMS}.flatMap((item) => {
+  const color = getComputedStyle(item).color;
+  const paints = [...item.querySelectorAll(".glyph svg, .glyph svg *")].flatMap((element) =>
+    ["fill", "stroke"]
+      .filter((property) => element.hasAttribute(property))
+      .map((property) => getComputedStyle(element)[property]),
+  );
+  if (paints.length === 0) return [item.dataset.icon + ": no fill or stroke to compare"];
+  return paints
+    .filter((value) => value !== color)
+    .map((value) => item.dataset.icon + ": " + value + " against " + color);
+})`;
+
+/** The foundation's localStorage key for the reader's choice. */
+const KEY = "web-foundation.preferences";
+
+/** The page's stored choice, parsed, or null with none. */
+const stored = (page: Page) =>
+  page.evaluate(`JSON.parse(localStorage.getItem(${JSON.stringify(KEY)}))`);
+
+/** The root's four profile attributes, null where one is absent. */
+const rooted = (page: Page) =>
+  page.evaluate(`Object.fromEntries(["data-palette", "data-space", "data-type", "data-scheme"]
+    .map((name) => [name, document.documentElement.getAttribute(name)]))`);
+
+/** Each header select's value, by its name. */
+const selected = (page: Page) =>
+  page.evaluate(`Object.fromEntries([...document.querySelectorAll("form[data-choice] select")]
+    .map((select) => [select.name, select.value]))`);
+
+/** Each header select's options' values, by its name. */
+const options = (page: Page) =>
+  page.evaluate(`Object.fromEntries([...document.querySelectorAll("form[data-choice] select")]
+    .map((select) => [select.name, [...select.options].map((option) => option.value)]))`);
+
+/** Chooses the value in the header's select for the key, as a reader does. */
+const choose = (page: Page, key: string, value: string) =>
+  page.evaluate(`(() => {
+    const select = document.querySelector("form[data-choice] select[name=${key}]");
+    select.value = ${JSON.stringify(value)};
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  })()`);
+
+describe("the browse page", { timeout: 300_000 }, () => {
+  let server: Server;
+  let browser: Browser;
+  let page: Page;
+  const requests: string[] = [];
+  before(async () => {
+    server = await serve(served);
+    browser = await launch();
+    page = await browser.open("about:blank");
+    page.on("Network.requestWillBeSent", ({ request }) => requests.push(request.url));
+    await page.cdp("Network.enable");
+  });
+  after(async () => {
+    await page?.close();
+    await browser?.close();
+    await server?.stop();
+  });
+
+  /** Loads the page at the viewport's width, its storage cleared, every glyph in it, rendered. */
+  async function load(query = "", width = 1280) {
+    await resize(page, width);
+    await page.goto(`${server.origin}${PAGE}${query}`);
+    await page.evaluate(`localStorage.clear()`);
+    await page.goto(`${server.origin}${PAGE}${query}`);
+    await page.evaluate(`window.ready.then(() => ${SETTLED})`);
+  }
+
+  test("shows every released icon once, in its set's section, beside its name", async () => {
+    await load();
+    const shown: { set: string; name: string; icon: string }[] = await page.evaluate(
+      `${ITEMS}.map((item) => ({
+        set: item.closest("section").querySelector("h2 code").textContent,
+        name: item.querySelector(":scope > code").textContent,
+        icon: item.dataset.icon,
+      }))`,
+    );
+    assert.ok(released.length > 0, "sets.json releases no icon");
+    assert.deepEqual(
+      shown.map(({ set, name }) => `${set}/${name}`),
+      released,
+    );
+    for (const { set, name, icon } of shown) assert.equal(icon, `${set}/${name}`);
+  });
+
+  test("heads each set's section with its licence and its upstream tag", async () => {
+    await load();
+    const sections: { name: string; about: string[] }[] = await page.evaluate(
+      `[...document.querySelectorAll("main > section")].map((section) => ({
+        name: section.querySelector("h2 code").textContent,
+        about: [...section.querySelectorAll(".about > dd")].map((dd) => dd.textContent),
+      }))`,
+    );
+    const sets = JSON.parse(readFileSync(join(root, "sets.json"), "utf8"));
+    assert.deepEqual(
+      sections.map(({ name }) => name),
+      Object.keys(sets),
+    );
+    for (const set of catalog(root)) {
+      const section = sections.find(({ name }) => name === set.name);
+      assert.deepEqual(section?.about, [
+        set.license.spdx ?? set.license.title,
+        sets[set.name].license.tag,
+        String(set.icons.length),
+      ]);
+    }
+  });
+
+  test("draws each glyph as its module's markup: hidden, unfocusable, in currentColor", async () => {
+    await load();
+    const problems: string[] = await page.evaluate(`(() => {
+      const modules = ${JSON.stringify(modules)};
+      const template = document.createElement("template");
+      return ${ITEMS}.flatMap((item) => {
+        const glyph = item.querySelector(".glyph");
+        template.innerHTML = modules[item.dataset.icon];
+        const svg = glyph.firstElementChild;
+        const found = [];
+        if (glyph.childNodes.length !== 1 || !svg.isEqualNode(template.content.firstChild)) {
+          found.push("isn't its module's markup");
+        }
+        if (svg?.localName !== "svg") found.push("isn't an svg");
+        if (svg?.getAttribute("aria-hidden") !== "true") found.push("isn't aria-hidden");
+        if (svg?.getAttribute("focusable") !== "false") found.push("is focusable");
+        if (!svg?.outerHTML.includes('"currentColor"')) found.push("isn't drawn in currentColor");
+        return found.map((problem) => item.dataset.icon + " " + problem);
+      });
+    })()`);
+    assert.deepEqual(problems, []);
+  });
+
+  test("renders in every profile, light and dark, at 1280 and 390 px, with no sideways scroll, no name broken within a word, the glyphs in the text's color", async () => {
+    await load();
+    const registry: Registry = await page.evaluate(`(() => {
+      const store = globalThis[Symbol.for("web-foundation.registry")];
+      return { color: store.color, space: store.space, type: store.type };
+    })()`);
+    assert.ok(registry.color.length > 1, "the full entry registers every palette");
+    const backgrounds = new Map<string, string>();
+    for (const run of runs(registry)) {
+      const label = `${run.palette} ${run.space} ${run.type} ${run.scheme} at ${run.width}px`;
+      await resize(page, run.width);
+      const shown: {
+        overflow: number;
+        broken: string[];
+        unfollowed: string[];
+        background: string;
+      } = await page.evaluate(`(async () => {
+          const root = document.documentElement;
+          root.dataset.palette = ${JSON.stringify(run.palette)};
+          root.dataset.space = ${JSON.stringify(run.space)};
+          root.dataset.type = ${JSON.stringify(run.type)};
+          root.dataset.scheme = ${JSON.stringify(run.scheme)};
+          await ${SETTLED};
+          return {
+            overflow: root.scrollWidth - root.clientWidth,
+            broken: ${BROKEN},
+            unfollowed: ${UNFOLLOWED},
+            background: getComputedStyle(document.body).backgroundColor,
+          };
+        })()`);
+      assert.ok(shown.overflow <= 0, `${label}: scrolls sideways by ${shown.overflow}px`);
+      assert.deepEqual(shown.broken, [], label);
+      assert.deepEqual(shown.unfollowed, [], label);
+      backgrounds.set(`${run.palette} ${run.space} ${run.type} ${run.scheme}`, shown.background);
+    }
+    for (const palette of registry.color) {
+      const [space] = registry.space;
+      const [type] = registry.type;
+      const light = backgrounds.get(`${palette} ${space} ${type} light`);
+      const dark = backgrounds.get(`${palette} ${space} ${type} dark`);
+      assert.notEqual(light, dark, `${palette}: light and dark share the background ${light}`);
+    }
+  });
+
+  test("a dark scheme the query names reaches the first load's glyphs", async () => {
+    await load();
+    const light: string = await page.evaluate(`getComputedStyle(document.body).backgroundColor`);
+    await load("?scheme=dark", 390);
+    const dark: { background: string; scheme: string; unfollowed: string[] } =
+      await page.evaluate(`({
+        background: getComputedStyle(document.body).backgroundColor,
+        scheme: document.documentElement.dataset.scheme,
+        unfollowed: ${UNFOLLOWED},
+      })`);
+    assert.equal(dark.scheme, "dark");
+    assert.notEqual(dark.background, light);
+    assert.deepEqual(dark.unfollowed, []);
+  });
+
+  test("the selects list the registered profiles and the schemes, and show the defaults with nothing stored", async () => {
+    await load();
+    const registry: Registry = await page.evaluate(`(() => {
+      const store = globalThis[Symbol.for("web-foundation.registry")];
+      return { color: store.color, space: store.space, type: store.type };
+    })()`);
+    assert.deepEqual(await options(page), {
+      color: registry.color,
+      scheme: ["system", "light", "dark"],
+      space: registry.space,
+      type: registry.type,
+    });
+    assert.deepEqual(await selected(page), {
+      color: registry.color[0],
+      scheme: "system",
+      space: registry.space[0],
+      type: registry.type[0],
+    });
+  });
+
+  test("a select's change applies and saves the choice at once, which the selects show on a reload", async () => {
+    await load();
+    await choose(page, "color", "github");
+    await choose(page, "scheme", "dark");
+    assert.deepEqual(await rooted(page), {
+      "data-palette": "github",
+      "data-space": "regular",
+      "data-type": "mono",
+      "data-scheme": "dark",
+    });
+    assert.deepEqual(await stored(page), {
+      color: "github",
+      scheme: "dark",
+      space: "regular",
+      type: "mono",
+    });
+    await page.goto(`${server.origin}${PAGE}`);
+    assert.deepEqual(await rooted(page), {
+      "data-palette": "github",
+      "data-space": "regular",
+      "data-type": "mono",
+      "data-scheme": "dark",
+    });
+    assert.deepEqual(await selected(page), {
+      color: "github",
+      scheme: "dark",
+      space: "regular",
+      type: "mono",
+    });
+  });
+
+  test("another tab's save applies here and shows in the selects", async () => {
+    await load();
+    const other = await browser.open(`${server.origin}${PAGE}`);
+    try {
+      await choose(other, "color", "catppuccin");
+      await choose(other, "space", "compact");
+      await until(
+        page,
+        `document.documentElement.dataset.palette === "catppuccin" &&
+          document.documentElement.dataset.space === "compact"`,
+      );
+      await until(
+        page,
+        `document.querySelector("select[name=color]").value === "catppuccin" &&
+          document.querySelector("select[name=space]").value === "compact"`,
+      );
+    } finally {
+      await other.close();
+    }
+  });
+
+  test("with nothing stored, the selects show the profile the query sets", async () => {
+    await load("?palette=everforest&type=sans&scheme=light");
+    assert.deepEqual(await rooted(page), {
+      "data-palette": "everforest",
+      "data-space": null,
+      "data-type": "sans",
+      "data-scheme": "light",
+    });
+    assert.deepEqual(await selected(page), {
+      color: "everforest",
+      scheme: "light",
+      space: "regular",
+      type: "sans",
+    });
+    assert.equal(await stored(page), null, "the query's profile isn't saved");
+  });
+
+  test("raises no error, and requests nothing outside the local origin", async () => {
+    await load();
+    assert.deepEqual(await page.evaluate(`window.errors`), []);
+    const local = (url: string) => url.startsWith(`${server.origin}/`) || url === "about:blank";
+    assert.ok(
+      requests.some((url) => url.endsWith("/browse/catalog.js")),
+      "it loads its catalog",
+    );
+    assert.ok(
+      requests.some((url) => url.endsWith(`/dist/${released[0]}.js`)),
+      "it imports the built modules",
+    );
+    assert.deepEqual(
+      requests.filter((url) => !local(url)),
+      [],
+    );
+  });
+});
+
+describe("the browse page on a fixture set", { timeout: 60_000 }, () => {
+  const fixture = join(root, "test/fixtures/sets/tiny");
+  const out = mkdtempSync(join(tmpdir(), "browse-"));
+  const info: IconifyInfo = JSON.parse(readFileSync(join(fixture, "info.json"), "utf8"));
+  /** The tiny fixture, whose licence has an SPDX identifier and no URL, as the only set. */
+  const sets: CatalogSet[] = [
+    {
+      name: "tiny",
+      title: info.name,
+      license: { title: info.license.title, spdx: info.license.spdx, url: info.license.url },
+      upstream: { repository: "https://example.test/tiny", tag: "v0.0.0", commit: "0" },
+      icons: generateSet(
+        { name: "tiny", dir: fixture, license: join(fixture, "LICENSE"), provenance: "fixture" },
+        out,
+      ),
+    },
+  ];
+  let server: Server;
+  let browser: Browser;
+  let page: Page;
+  before(async () => {
+    server = await serve({
+      ...served,
+      // The fixture's catalog and its generated modules, in place of the released sets'.
+      handler: (request, response) => {
+        const { pathname } = new URL(request.url ?? "/", "http://localhost");
+        const module = pathname.match(/^\/dist\/tiny\/([a-z0-9-]+)\.js$/);
+        if (pathname !== CATALOG && !module) return false;
+        const body =
+          pathname === CATALOG
+            ? `export default ${JSON.stringify(sets)};\n`
+            : readFileSync(join(out, "tiny", `${module?.[1]}.js`));
+        response.writeHead(200, { "content-type": "text/javascript" }).end(body);
+        return true;
+      },
+    });
+    browser = await launch();
+    page = await browser.open("about:blank");
+  });
+  after(async () => {
+    await page?.close();
+    await browser?.close();
+    await server?.stop();
+    rmSync(out, { recursive: true, force: true });
+  });
+
+  test("labels a licence with an SPDX identifier and no URL by its identifier", async () => {
+    assert.equal(info.license.url, undefined, "the fixture's licence gives no URL");
+    assert.notEqual(info.license.spdx, info.license.title, "its identifier and title differ");
+    await page.goto(`${server.origin}${PAGE}`);
+    await page.evaluate(`window.ready`);
+    const licence: string = await page.evaluate(
+      `document.querySelector("main > section .about > dd").textContent`,
+    );
+    assert.equal(licence, info.license.spdx);
+  });
+});
