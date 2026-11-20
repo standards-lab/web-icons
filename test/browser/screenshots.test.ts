@@ -5,11 +5,13 @@
 // directory of its own and node's compile cache, which writes there too, off. It prints the page's
 // two states' captures, wide and narrow, under that TMPDIR and leaves it empty, and with --keep
 // leaves every capture it printed, so the first run's empty TMPDIR is the output's cleanup, not a
-// capture that never wrote. Neither run writes into the repository.
+// capture that never wrote. Neither run writes into the repository. mise run preview's script,
+// scripts/preview.ts, writes into a scratch directory of its own the same bin's first wide tile at
+// the default profile, light and dark, byte for byte, and leaves its TMPDIR empty.
 
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, test } from "node:test";
@@ -17,6 +19,7 @@ import { describe, test } from "node:test";
 const root = join(import.meta.dirname, "../..");
 const config = join(root, "scripts/screenshots.config.ts");
 const bin = join(root, "node_modules/.bin/web-screenshots");
+const preview = join(root, "scripts/preview.ts");
 
 /** The repository's files git doesn't ignore and doesn't track: what a run would leave. */
 const untracked = () =>
@@ -80,5 +83,44 @@ describe("mise run screenshots' command", { timeout: 300_000 }, () => {
     assert.equal(status, 0, stderr);
     assert.ok(printed.length > 0, "it printed its captures");
     for (const path of printed) assert.ok(left.includes(path), `${path} is kept`);
+  });
+
+  test("mise run preview's script writes the first wide tile, light and dark, and nothing else", () => {
+    const before = untracked();
+    const scratch = mkdtempSync(join(tmpdir(), "preview-test."));
+    try {
+      const [out, tmp, shots] = [
+        join(scratch, "out"),
+        join(scratch, "tmp"),
+        join(scratch, "shots"),
+      ];
+      mkdirSync(tmp);
+      const env = { ...process.env, TMPDIR: tmp, NODE_DISABLE_COMPILE_CACHE: "1" };
+      const run = spawnSync(process.execPath, [preview, out], { cwd: root, env, encoding: "utf8" });
+      assert.equal(run.status, 0, run.stderr);
+      assert.deepEqual(readdirSync(out).sort(), ["preview-dark.png", "preview-light.png"]);
+      assert.deepEqual(readdirSync(tmp), [], "TMPDIR is left empty");
+
+      // The same capture, every tile kept, to hold each preview to its scheme's first wide tile.
+      const args = [config, "--page", "browse", "--output", "directory", "--dir", shots];
+      const capture = spawnSync(bin, args, { cwd: root, env, encoding: "utf8" });
+      assert.equal(capture.status, 0, capture.stderr);
+      const tiles = readdirSync(shots);
+      for (const scheme of ["light", "dark"]) {
+        const first = tiles.filter((file) =>
+          new RegExp(`^1-browse-wide--zen-regular-mono-${scheme}(--1of\\d+)?\\.png$`).test(file),
+        );
+        assert.equal(first.length, 1, `one first wide ${scheme} tile among ${tiles}`);
+        assert.ok(
+          readFileSync(join(out, `preview-${scheme}.png`)).equals(
+            readFileSync(join(shots, first[0])),
+          ),
+          `preview-${scheme}.png is ${first[0]}`,
+        );
+      }
+    } finally {
+      rmSync(scratch, { recursive: true, force: true });
+    }
+    assert.equal(untracked(), before, "the run leaves no file in the repository");
   });
 });

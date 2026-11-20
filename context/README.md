@@ -64,6 +64,10 @@ so their provenance is here:
   `scripts/served.ts`, that shows every shipped icon by name in sections by set. Its plain selects
   for color, scheme, space, and type show the root's profile; the foundation loads through an
   import map from `/deps/`. `mise run screenshots` captures it, wide and narrow, light and dark.
+- **Preview**: README.md's `<picture>`, `docs/preview-light.png` and `docs/preview-dark.png`, the
+  browse page's first wide tile at the default profile, picked by `prefers-color-scheme`.
+  `mise run preview` (`scripts/preview.ts`) regenerates them by hand from the screenshots
+  command's capture; the check never writes them, and the pack never carries `docs/`.
 - **Release**: the release rule (`test/unit/release.ts`), which checks the manifest's form and
   relations and the LICENSE; the pack test on an installed pack; and `release.yml`, which verifies
   a hand-cut tag and publishes it. `mise run currency` reports each pin behind its latest.

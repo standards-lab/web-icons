@@ -13,6 +13,11 @@ web-foundation, below web-components and web-app-sdk.
 
 It releases [Octicons](https://github.com/primer/octicons) 19.42.0 alone.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/preview-dark.png">
+  <img src="docs/preview-light.png" alt="The browse page at its default profile, zen, regular, and mono: the web-icons heading and its color, scheme, space, and type selects, then the Octicons section's licence, upstream tag, and glyph count, above a grid of icons, each over its name.">
+</picture>
+
 ## Install
 
 Each release is a tag, `v<version>`, of
@@ -158,6 +163,7 @@ mise run check        # lint, types, the build, and the unit and browser tiers; 
 mise run build        # generate sets.json's sets into a fresh dist/, and build the plugin beside them
 mise run browse       # serve the browse page on a loopback port and print its URL; Ctrl-C stops it
 mise run screenshots  # capture the browse page wide and narrow, light and dark, inline in kitty
+mise run preview      # regenerate this README's preview, docs/preview-light.png and docs/preview-dark.png
 mise run currency     # report every tool, package, and action pin, the @iconify-json set, the vite peer's range, and the foundation's and the tooling's tags behind its latest
 ```
 
@@ -180,6 +186,14 @@ and compact and sans. `--output directory --dir <path>` writes the files instead
 in kitty; `mise run screenshots -- --help` lists the other flags, and web-tooling's README
 documents them. The check never runs `browse` or `screenshots`, though the browser tier runs the
 screenshots command once.
+
+`mise run preview` regenerates the preview at the top of this README, `docs/preview-light.png` and
+`docs/preview-dark.png`: the browse page's first wide tile, 1280 px wide and at most 1200 px tall,
+at the default profile, light and dark. It runs the screenshots command over the same description,
+into a scratch directory it removes, and copies those two tiles; given a directory, it writes them
+there instead. Run it, and commit the two files, when the browse page's look changes. `docs/` is
+never packed, so the images stay out of the release. The browser tier runs the script once, into a
+scratch directory, and holds each image to its scheme's first wide tile.
 
 The unit tier runs the generator on fixture sets in Iconify's layout, `test/fixtures/sets/`, the
 plugin through two fixture Vite projects as a dev server and as a build, the release rule on the
