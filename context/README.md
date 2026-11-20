@@ -9,10 +9,8 @@ web-components and web-app-sdk.
 
 It is a package under the `@standards-lab` scope, starting at v0.1.0 and released by a plain
 `vX.Y.Z` tag. Its goals live in the coordinator's roadmap (`standards-lab/context/roadmap.toml`,
-v1.client.stack), and its strategy is `standards-lab/context/web-client.md`. Its first task,
-v1.client.stack's `icons`, seeds it by copy from spike-html-hosting-icons at 8b8d955, and its fill
-from spike-html-hosting-sdk's `src/icons.ts` at f49087e, with a provenance line on every copied
-file; the spikes are archived and never a dependency.
+v1.client.stack), and its strategy is `standards-lab/context/web-client.md`. README.md's
+"Provenance" section names the spikes it is seeded from.
 
 ## Release
 
@@ -47,9 +45,10 @@ so their provenance is here:
 ## Capability map
 
 - **Icons**: Octicons 19.42.0, from Iconify's `@iconify-json/octicon` 1.2.40, one string ES module
-  per icon with its declaration: 803 modules, every icon Iconify marks visible and every alias of a
-  shipped icon, imported as `octicon/<name>`. A shipped name keeps resolving in every later
-  release.
+  per icon with its declaration: 803 modules, the 780 icons Iconify marks visible and the 23
+  aliases of a shipped icon, imported as `octicon/<name>`. An alias takes its parent's hidden flag
+  unless it sets its own. A shipped name keeps resolving in every later release (STANDARDS.md,
+  "Icons"); no test enforces it yet.
 - **Generator**: `scripts/generate.ts`, run by `scripts/build.ts` on the sets `sets.json` lists,
   into a fresh `dist/`. The licence gate accepts MIT, ISC, Apache-2.0, BSD-2-Clause,
   BSD-3-Clause, CC0-1.0, and Unlicense, and refuses any other set, a set whose prefix isn't its
@@ -59,10 +58,12 @@ so their provenance is here:
 - **Fill**: `iconFill()`, from `@standards-lab/web-icons/vite` (`src/vite.ts`): a Vite plugin
   that fills `data-icon` markers in every HTML page, in dev and at build, the marker's class
   carried over, and fails the page naming it and the icon on a malformed marker or an unknown
-  icon.
+  icon. It runs before Vite's own HTML transforms and loads each icon from the module beside it in
+  its own package.
 - **Browse**: `browse/`, a dev-only page on web-foundation v0.4.0's full entry, served by
-  `scripts/served.ts`, that shows every shipped icon by name in sections by set, with plain
-  selects for color, scheme, space, and type. `mise run screenshots` captures it, wide and
-  narrow, light and dark.
-- **Release**: the release rule (`test/unit/release.ts`) on the manifest and LICENSE, the pack
-  test on an installed pack, and `release.yml`, which verifies a hand-cut tag and publishes it.
+  `scripts/served.ts`, that shows every shipped icon by name in sections by set. Its plain selects
+  for color, scheme, space, and type show the root's profile; the foundation loads through an
+  import map from `/deps/`. `mise run screenshots` captures it, wide and narrow, light and dark.
+- **Release**: the release rule (`test/unit/release.ts`), which checks the manifest's form and
+  relations and the LICENSE; the pack test on an installed pack; and `release.yml`, which verifies
+  a hand-cut tag and publishes it. `mise run currency` reports each pin behind its latest.

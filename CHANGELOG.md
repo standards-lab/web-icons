@@ -15,8 +15,8 @@ All notable changes to `@standards-lab/web-icons` are documented here. The forma
   spike-html-hosting-sdk (f49087e). It has no runtime dependency and no install script; its build
   generates the icon modules from Iconify's `@iconify-json/*` sets, and tsc builds the plugin
   beside them, into `dist/`.
-- Octicons 19.42.0, MIT, as `octicon/<name>`: 803 modules, every icon Iconify's
-  `@iconify-json/octicon` 1.2.40 marks visible and every alias of a shipped icon, `question-16`,
+- Octicons 19.42.0, MIT, as `octicon/<name>`: 803 modules, the 780 icons Iconify's
+  `@iconify-json/octicon` 1.2.40 marks visible and the 23 aliases of a shipped icon, `question-16`,
   `gear-16`, and `x-16` among them. Each is its own module, imported by set and name with no
   extension, whose default export is one complete `<svg>` string, 1em square, drawn in
   `currentColor`, `aria-hidden="true"` and `focusable="false"`, with a declaration that types it as

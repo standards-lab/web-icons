@@ -95,8 +95,10 @@ nor checked, so a comment may show a marker.
 A marker whose name isn't `<set>/<name>`, or whose icon the package doesn't hold, fails with a
 message naming the page and the icon; so does an svg holding `data-icon` that isn't an empty,
 quoted marker, naming the page and its tag. The build fails with that message, and in dev the
-page's request fails with it, so nothing reaches the browser half-filled. The icons come from the
-plugin's own package, so the plugin and its icons are always one release.
+page's request fails with it, so nothing reaches the browser half-filled. The plugin fills a page
+before Vite's own HTML transforms read it, so dev and build fill the same page and fail with the
+same message. It loads each icon from the module beside it in its own package, so the plugin and
+its icons are always one release.
 
 ## Sets and licences
 
@@ -105,8 +107,9 @@ plugin's own package, so the plugin and its icons are always one release.
 | [Octicons](https://github.com/primer/octicons) | `octicon/<name>` | MIT | primer/octicons, tag `@primer/octicons@19.42.0` |
 
 A set ships every icon Iconify marks visible, and every alias of a shipped icon, which carries its
-parent's markup: Octicons is 803 modules. An icon Iconify marks hidden, such as `alert`, doesn't
-ship. From v0.1.0 on, a shipped name keeps resolving in every later release.
+parent's markup: Octicons ships 803 modules, 780 icons and 23 aliases. An icon Iconify marks
+hidden, such as `alert`, doesn't ship, and neither does an alias that takes its parent's hidden
+flag. From v0.1.0 on, a shipped name keeps resolving in every later release.
 
 The package is Apache-2.0. `sets.json` lists the released sets, each read from its
 `@iconify-json/*` devDependency. The generator accepts a set only when shipping its licence text
@@ -160,12 +163,13 @@ mise run currency     # report every tool, package, and action pin, the @iconify
 
 `browse/index.html` is the browse page: every shipped icon, each beside its name, in sections by
 set, each section naming the set's licence and its upstream tag. It runs on web-foundation
-v0.4.0's full entry, and plain selects for color, scheme, space, and type show the stored choice
-and apply and save a change at once; the URL query (`?palette=github&scheme=dark`) sets a profile
-before the first paint. It is dev-only: the pack carries `dist/` alone, so the page and what
-serves it never ship. `scripts/served.ts` serves it at `/browse/`, with each glyph the built
-`dist/<set>/<name>.js`, imported as a consumer imports it, and its catalog made from `sets.json`
-and `dist/` at its request.
+v0.4.0's full entry. Plain selects for color, scheme, space, and type show the profile the page's
+root carries, so they follow the stored choice, the URL query (`?palette=github&scheme=dark`, set
+before the first paint), and another tab's save; a change applies and saves at once. It is
+dev-only: the pack carries `dist/` alone, so the page and what serves it never ship.
+`scripts/served.ts` serves it at `/browse/`, with each glyph the built `dist/<set>/<name>.js`,
+imported as a consumer imports it; the foundation under `/deps/`, which the page's import map
+names; and the catalog, made from `sets.json` and `dist/` at each request.
 
 `mise run screenshots` captures the browse page whole, wide and narrow, light and dark. It runs the
 `web-screenshots` bin of [web-tooling](https://github.com/standards-lab/web-tooling), the
