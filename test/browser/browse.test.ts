@@ -1,19 +1,11 @@
 // Adapted from spike-html-hosting-icons (8b8d955): test/browser/browse.test.ts, on web-tooling
 // and web-foundation's registry key, with the selects' cases in place of the theme menu.
-// The browse page, browse/index.html, served as mise run browse serves it, by scripts/served.ts,
-// over the dist/ mise run build writes, through what the page shows: every module the build wrote
-// for every released set appears once, in its set's section, beside its name, and the section
-// names the set's licence and its upstream tag, as sets.json and the set's info.json give them;
-// each glyph is its module's default export as markup, an svg hidden from assistive technology and
-// out of the tab order, drawn in currentColor, so its paint follows the text's color; the page
-// renders in every profile the foundation's full entry registers, light and dark, at 1280 and 390
-// px, with no sideways scroll, each glyph's name broken only after a hyphen and never wider than
-// its cell, the glyphs' paint the text's in each and the schemes' backgrounds apart; a dark scheme
-// the query names reaches the first load's glyphs; the header's selects list the registered
-// profiles, show the stored choice, apply and save a change at once, follow another tab's save,
-// and with nothing stored show the query's profile; the page raises no error; and no request the
-// page makes leaves the local origin. A fixture set whose licence has an SPDX identifier and no
-// URL, served in place of the released sets, is labelled by its identifier.
+// The browse page, served as mise run browse serves it over the dist/ mise run build writes, in the
+// pinned chrome-headless-shell, through what it shows: every released icon in its set's section
+// beside its name, each glyph its module's markup; every built-in profile, light and dark, at 1280
+// and 390 px, with nothing scrolling sideways, no name broken within a word, and the glyphs in the
+// text's color; the header's selects; and no error and no request off the local origin. A fixture
+// set, served in place of the released sets, covers a licence with no URL.
 
 import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -141,6 +133,13 @@ const UNFOLLOWED = `${ITEMS}.flatMap((item) => {
 /** The foundation's localStorage key for the reader's choice. */
 const KEY = "web-foundation.preferences";
 
+/** The names the page registered, by facet, from the foundation's store at its well-known key. */
+const registered = (page: Page): Promise<Registry> =>
+  page.evaluate(`(() => {
+    const store = globalThis[Symbol.for("web-foundation.registry")];
+    return { color: store.color, space: store.space, type: store.type };
+  })()`);
+
 /** The page's stored choice, parsed, or null with none. */
 const stored = (page: Page) =>
   page.evaluate(`JSON.parse(localStorage.getItem(${JSON.stringify(KEY)}))`);
@@ -260,10 +259,7 @@ describe("the browse page", { timeout: 300_000 }, () => {
 
   test("renders in every profile, light and dark, at 1280 and 390 px, with no sideways scroll, no name broken within a word, the glyphs in the text's color", async () => {
     await load();
-    const registry: Registry = await page.evaluate(`(() => {
-      const store = globalThis[Symbol.for("web-foundation.registry")];
-      return { color: store.color, space: store.space, type: store.type };
-    })()`);
+    const registry = await registered(page);
     assert.ok(registry.color.length > 1, "the full entry registers every palette");
     const backgrounds = new Map<string, string>();
     for (const run of runs(registry)) {
@@ -319,10 +315,7 @@ describe("the browse page", { timeout: 300_000 }, () => {
 
   test("the selects list the registered profiles and the schemes, and show the defaults with nothing stored", async () => {
     await load();
-    const registry: Registry = await page.evaluate(`(() => {
-      const store = globalThis[Symbol.for("web-foundation.registry")];
-      return { color: store.color, space: store.space, type: store.type };
-    })()`);
+    const registry = await registered(page);
     assert.deepEqual(await options(page), {
       color: registry.color,
       scheme: ["system", "light", "dark"],

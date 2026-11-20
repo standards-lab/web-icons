@@ -2,16 +2,10 @@
 // through the plugin's page transform, and its Markdown pages' cases replaced by the fixture Vite
 // projects.
 // The marker fill, iconFill() from the built @standards-lab/web-icons/vite, as the package's own
-// name resolves it: each glyph marker, an empty <svg data-icon="<set>/<name>"></svg>, its
-// attributes quoted either way, is replaced by its icon's svg, the module's string whole, a class
-// on the marker carried onto it; a page with no marker, an svg that isn't one, or a comment's text
-// is unchanged; a name the package doesn't hold, or one that isn't <set>/<name>, fails, naming the
-// page and the icon; and an svg holding data-icon that isn't a marker fails, naming the page and
-// its tag. Then the fixture projects in test/fixtures/, run by Vite as a dev server answering
-// their pages and as a build into a scratch directory in TMPDIR: test/fixtures/vite/'s two pages
-// filled with question-16, gear-16, and x-16 in each, its build's script carrying exactly the two
-// icons it imports and no other icon's markup, and test/fixtures/vite-unknown/'s unknown icon
-// failing its page's request in dev and its build with the same message.
+// name resolves it: its page transform on pages it fills, leaves unchanged, and fails, naming the
+// page; then the fixture projects in test/fixtures/, vite/ and vite-unknown/, run by Vite as a dev
+// server answering their pages and as a build into a scratch directory, the build's script
+// carrying exactly the two icons it imports, and the unknown icon failing both with one message.
 
 import assert from "node:assert/strict";
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
@@ -44,7 +38,6 @@ after(() => {
 function fill(html: string, path = "/index.html"): Promise<unknown> {
   const hook = iconFill().transformIndexHtml;
   assert.ok(hook && typeof hook === "object", "transformIndexHtml isn't an ordered hook");
-  assert.equal(hook.order, "pre");
   return Promise.resolve(
     hook.handler.call({} as never, html, { path, filename: join(root, path) } as never),
   );

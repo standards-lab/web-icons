@@ -1,13 +1,9 @@
 // Adapted from spike-html-hosting-icons (8b8d955): test/unit/pack.test.ts, its manifest's case
 // moved to the release rule (test/unit/release.test.ts).
-// The pack: pnpm pack's tarball of the build, extracted into a scratch consumer's node_modules in
-// TMPDIR, removed after. Its files are the build and the files every pack carries, never the browse
-// page or the scripts that serve it; an icon resolves from it by its set and name, with no
-// extension, as a consumer imports it, in node to its module and under TypeScript's types
-// condition to its declaration, which types the icon as a string; and the plugin resolves from
-// .../vite to its module and its declaration, and fills a marker from the installed package's own
-// icons, in a consumer that installs no Vite. It packs the dist/ mise run build writes, and reads
-// no network.
+// The pack: pnpm pack's tarball of the dist/ mise run build writes, extracted into a scratch
+// consumer's node_modules: its files, never the browse page or its scripts; an icon and the plugin
+// resolving from it in node and under TypeScript's types condition; and the plugin filling a
+// marker from the installed package's own icons with no Vite installed. It reads no network.
 
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
@@ -57,6 +53,18 @@ function resolveFromConsumer(specifier: string, conditions: string[] = []): stri
   return relative(installed, fileURLToPath(url)).split(sep).join("/");
 }
 
+/** What node prints running `script`, a module, from the consumer, `specifier` its argument. */
+function runInConsumer(script: string, specifier: string): string {
+  return execFileSync(process.execPath, ["--input-type=module", "-e", script, specifier], {
+    cwd: consumer,
+    encoding: "utf8",
+  });
+}
+
+/** The default export of `specifier`, a string, as node imports it from the consumer. */
+const importInConsumer = (specifier: string): string =>
+  runInConsumer("process.stdout.write((await import(process.argv[1])).default)", specifier);
+
 /** TypeScript's diagnostics on `source`, a consumer module, under node's module resolution. */
 function typeCheck(source: string): { messages: string[]; declarations: string[] } {
   const file = join(consumer, "consumer.ts");
@@ -99,16 +107,7 @@ describe("the pack", () => {
 
   test("an icon resolves by its set and name to its module, a string", async () => {
     assert.equal(resolveFromConsumer(icon), "dist/octicon/x-16.js");
-    const svg = execFileSync(
-      process.execPath,
-      [
-        "--input-type=module",
-        "-e",
-        "process.stdout.write((await import(process.argv[1])).default)",
-        icon,
-      ],
-      { cwd: consumer, encoding: "utf8" },
-    );
+    const svg = importInConsumer(icon);
     assert.match(svg, /^<svg [^>]*viewBox="0 0 16 16"[^>]*>.*<\/svg>$/s);
     const built = await import(pathToFileURL(join(root, "dist/octicon/x-16.js")).href);
     assert.equal(svg, built.default);
@@ -135,28 +134,13 @@ describe("the pack", () => {
 
   test("the plugin fills a marker with the installed package's icon, with no Vite installed", () => {
     assert.ok(!readdirSync(join(consumer, "node_modules")).includes("vite"));
-    const filled = execFileSync(
-      process.execPath,
-      [
-        "--input-type=module",
-        "-e",
-        `const { iconFill } = await import(process.argv[1]);
+    const filled = runInConsumer(
+      `const { iconFill } = await import(process.argv[1]);
 const html = '<svg data-icon="octicon/x-16"></svg>';
 process.stdout.write(await iconFill().transformIndexHtml.handler(html, { path: "/index.html" }));`,
-        plugin,
-      ],
-      { cwd: consumer, encoding: "utf8" },
+      plugin,
     );
-    const svg = execFileSync(
-      process.execPath,
-      [
-        "--input-type=module",
-        "-e",
-        "process.stdout.write((await import(process.argv[1])).default)",
-        icon,
-      ],
-      { cwd: consumer, encoding: "utf8" },
-    );
+    const svg = importInConsumer(icon);
     assert.equal(filled, svg);
   });
 });
