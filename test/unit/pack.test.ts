@@ -13,7 +13,7 @@ import { join, relative, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { after, before, describe, test } from "node:test";
 import ts from "typescript";
-import { listFiles, packageName as name } from "./release.ts";
+import { listFiles, packageName as name, packInto } from "./release.ts";
 
 const root = join(import.meta.dirname, "../..");
 const icon = `${name}/octicon/x-16`;
@@ -25,9 +25,7 @@ let consumer: string;
 let installed: string;
 before(() => {
   scratch = mkdtempSync(join(tmpdir(), "pack-"));
-  execFileSync("pnpm", ["pack", "--pack-destination", scratch], { cwd: root, stdio: "ignore" });
-  const [tarball] = readdirSync(scratch).filter((file) => file.endsWith(".tgz"));
-  execFileSync("tar", ["-xzf", join(scratch, tarball), "-C", scratch]);
+  execFileSync("tar", ["-xzf", packInto(root, scratch), "-C", scratch]);
   consumer = join(scratch, "consumer");
   installed = join(consumer, "node_modules", name);
   mkdirSync(join(consumer, "node_modules/@standards-lab"), { recursive: true });

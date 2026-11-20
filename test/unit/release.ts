@@ -9,6 +9,7 @@
 // on a pnpm pack. Which version, range, pin, and tag is package.json's; mise run currency reports
 // each behind its latest.
 
+import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, sep } from "node:path";
 
@@ -24,6 +25,23 @@ export interface Manifest {
   peerDependencies?: Record<string, string>;
   peerDependenciesMeta?: Record<string, { optional?: boolean }>;
   devDependencies?: Record<string, string>;
+}
+
+/** Packs the package at `root` with pnpm pack into `destination`, a scratch directory, and returns
+ * the tarball's path. pnpm writes nothing into `root` while it packs: unless a store directory is
+ * configured, pnpm first probes where its store should live by writing a short-lived
+ * _tmp_<pid>_<hex> file into the project, and the browser tier, which may be running beside the
+ * unit tier, checks that the repository's untracked files don't change. A store directory under
+ * `destination`, set in the environment (the --store-dir flag still probes), skips the probe; pack
+ * reads no store, so pnpm never creates it. */
+export function packInto(root: string, destination: string): string {
+  execFileSync("pnpm", ["pack", "--pack-destination", destination], {
+    cwd: root,
+    env: { ...process.env, pnpm_config_store_dir: join(destination, "store") },
+    stdio: "ignore",
+  });
+  const [tarball] = readdirSync(destination).filter((file) => file.endsWith(".tgz"));
+  return join(destination, tarball);
 }
 
 /** root's package.json. */

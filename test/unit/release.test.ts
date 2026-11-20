@@ -9,7 +9,7 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:f
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, describe, test } from "node:test";
-import { caretAdmits, listFiles, releaseProblems } from "./release.ts";
+import { caretAdmits, packInto, releaseProblems } from "./release.ts";
 import type { Manifest } from "./release.ts";
 
 const root = join(import.meta.dirname, "../..");
@@ -26,9 +26,7 @@ function scratchDir() {
 let pack: string;
 before(() => {
   const scratch = scratchDir();
-  execFileSync("pnpm", ["pack", "--pack-destination", scratch], { cwd: root, stdio: "ignore" });
-  const [tarball] = listFiles(scratch);
-  execFileSync("tar", ["-xzf", join(scratch, tarball), "-C", scratch]);
+  execFileSync("tar", ["-xzf", packInto(root, scratch), "-C", scratch]);
   pack = join(scratch, "package");
 });
 after(() => {
