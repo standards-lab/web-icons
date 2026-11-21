@@ -73,7 +73,7 @@ The architecture pages that apply, in the architecture repository:
 ## Code
 
 - A module's or a script's header documents the public contract, what it provides and promises,
-  with no reasoning; a script's sections become named functions; and a lint directive carries its
+  with no reasoning. A script's sections become named functions. A lint directive carries its
   reason as its `--` description.
 - A copied file names each source repository and commit in one provenance line per source, which
   reads `From|Adapted from <repo> (<commit>): <path>`, plus at most a short clause naming what
