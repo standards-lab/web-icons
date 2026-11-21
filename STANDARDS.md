@@ -34,8 +34,7 @@ The architecture pages that apply, in the architecture repository:
   glyphs.
 - A held LICENSE is the upstream's byte for byte, fetched at the tag its `@iconify-json` package
   follows, and moves only with that package's pin.
-- A new set is a minor release, named with its licence in the CHANGELOG (README.md, "Adding a
-  set").
+- A new set is a minor release, named with its licence in the CHANGELOG (`docs/adding-a-set.md`).
 - An icon names nothing and takes no focus; the text or label beside a glyph names it, and the
   fill adds no accessible name.
 
