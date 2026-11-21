@@ -1,5 +1,5 @@
-<!-- Adapted from spike-html-hosting-icons (8b8d955): STANDARDS.md, for @standards-lab/web-icons
-and its hand-cut releases, in web-foundation's (72e759f) STANDARDS.md shape. -->
+<!-- Adapted from spike-html-hosting-icons (8b8d955): STANDARDS.md, for web-icons. -->
+<!-- Adapted from web-foundation (72e759f): STANDARDS.md, its shape. -->
 
 # web-icons standards
 
@@ -18,12 +18,9 @@ The architecture pages that apply, in the architecture repository:
   Vite's latest release.
 - `architecture/principles/independent-releases.md`: the package releases on its own tags.
 - `architecture/principles/downward-dependencies.md`: the icons sit on the foundation, below the
-  components and the SDK, and import nothing above them; only the dev-only browse page loads the
+  components, and import nothing above them; only the dev-only browse page loads the
   foundation.
-- `architecture/principles/comments.md`: every comment is one of the five kinds (package
-  documentation, a suppression's reason, a pin hold's reason, provenance, a reference) in
-  TypeScript, JavaScript, shell, CSS, HTML, tests, and every configuration file (TOML, YAML,
-  JSONC, `.gitignore`, `.prettierignore`).
+- `architecture/principles/comments.md`: the five kinds of comment.
 - `architecture/principles/validation-first.md`: the generator checks a set's licence, prefix, and
   icon names before it writes a module, and the fill checks every marker before a page is served.
 
@@ -51,8 +48,8 @@ The architecture pages that apply, in the architecture repository:
 
 ## Design
 
-- web-foundation v0.4.0 is the browse page's visual baseline: native elements keep its styling,
-  and every built-in profile renders as it does there.
+- The pinned web-foundation release is the browse page's visual baseline: native elements keep its
+  styling, and every built-in profile renders as it does there.
 - Focus is always visible, motion honours reduced motion, and spacing comes from the foundation's
   tokens, never a literal.
 - A UI task's session brief carries the browse page's screenshots per profile (`mise run
@@ -75,14 +72,9 @@ The architecture pages that apply, in the architecture repository:
 
 ## Code
 
-- Code meets the bar of spike-html-conventions' `layers/` code at a88828a: a header of about 2–6
-  lines and a one-line doc comment per export.
 - A module's or a script's header documents the public contract, what it provides and promises,
-  with no reasoning, and each export carries a one-line doc comment. A doc comment on a
-  non-exported symbol, an in-body comment, and a test's comment are none of the five kinds: their
-  reasoning goes into names, exported docs, or a `docs/` page behind a one-line `See` reference,
-  and a script's sections become named functions. A configuration file's header is at most a short
-  description plus `See` lines. A lint directive carries its reason as its `--` description.
+  with no reasoning. A script's sections become named functions. A lint directive carries its
+  reason as its `--` description.
 - A copied file names each source repository and commit in one provenance line per source, which
   reads `From|Adapted from <repo> (<commit>): <path>`, plus at most a short clause naming what
   changed, never why, and a third-party source's licence after a semicolon. The lines its immediate

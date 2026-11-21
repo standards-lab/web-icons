@@ -1,5 +1,6 @@
-<!-- Adapted from spike-html-hosting-icons (8b8d955): README.md, for @standards-lab/web-icons, in
-web-foundation's (72e759f) README shape, with spike-html-hosting-sdk's (f49087e) marker fill. -->
+<!-- Adapted from spike-html-hosting-icons (8b8d955): README.md, for @standards-lab/web-icons. -->
+<!-- Adapted from web-foundation (72e759f): README.md, its shape. -->
+<!-- Adapted from spike-html-hosting-sdk (f49087e): README.md, its marker fill. -->
 
 # web-icons
 
@@ -9,7 +10,7 @@ complete `<svg>` string, so a bundle carries only the icons it imports; and `ico
 plugin, fills a page's glyph markers with the same markup in dev and at build. A component imports
 an icon's module and renders it with Lit's `unsafeHTML`; a page writes a marker and the plugin
 fills it. The package has no runtime dependency, and its one peer, Vite, is optional. It sits on
-web-foundation, below web-components and web-app-sdk.
+web-foundation, below web-components.
 
 It releases [Octicons](https://github.com/primer/octicons) 19.42.0 alone.
 
