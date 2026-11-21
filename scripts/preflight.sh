@@ -24,17 +24,18 @@ require_node_modules() {
   done
 }
 
-require_pinned_chrome_headless_shell() {
-  local shell pin
+require_browser_at_pin() {
+  local shell pin version
   shell=$(mise which chrome-headless-shell 2>/dev/null) || fail "chrome-headless-shell"
   pin=$(mise current http:chrome-headless-shell) || return
-  if [[ "$("$shell" --version)" != *" $pin" ]]; then
+  version=$("$shell" --version) || return
+  if [[ $version != *" $pin" ]]; then
     echo "preflight: $shell isn't chrome-headless-shell $pin; give the pin its own sha256" >&2
     exit 1
   fi
 }
 
 require_node_modules
-if [[ "${1:-}" == browser ]]; then
-  require_pinned_chrome_headless_shell
-fi
+case "${1:-}" in
+  browser) require_browser_at_pin ;;
+esac

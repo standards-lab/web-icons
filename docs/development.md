@@ -45,6 +45,6 @@ The unit tier runs the generator on fixture sets in Iconify's layout, `test/fixt
 plugin through two fixture Vite projects as a dev server and as a build, the release rule on the
 manifest, and a pack of the build installed into a scratch consumer. The browser tier checks the
 browse page in the pinned chrome-headless-shell, in every built-in profile, light and dark, at
-1280 and 390 px. The check lints with ESLint, Prettier, shellcheck, actionlint, and marathon's lint-context and
-lint-references. CI runs `mise
-run install` and the check on each pull request to main and each push to it.
+1280 and 390 px. The check lints with ESLint, Prettier, shellcheck, actionlint, and marathon's
+lint-context and lint-references. CI runs `mise run install` and the check on each pull request to
+main and each push to it.

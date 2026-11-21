@@ -4,7 +4,7 @@
 // in src/, and every .css import a CSS module script.
 // See docs/internals.md
 
-import eslintComments from "@eslint-community/eslint-plugin-eslint-comments";
+import comments from "@eslint-community/eslint-plugin-eslint-comments";
 import js from "@eslint/js";
 import { defineConfig } from "eslint/config";
 import boundaries from "eslint-plugin-boundaries";
@@ -68,18 +68,19 @@ export default defineConfig([
   { files: code, rules: { "no-restricted-syntax": ["error", ...cssImports] } },
   {
     files: code,
-    plugins: { "@eslint-community/eslint-comments": eslintComments },
+    plugins: { "@eslint-community/eslint-comments": comments },
     rules: {
       "@eslint-community/eslint-comments/require-description": "error",
       "@typescript-eslint/ban-ts-comment": [
         "error",
         {
+          "ts-check": false,
           "ts-expect-error": "allow-with-description",
           "ts-ignore": "allow-with-description",
           "ts-nocheck": "allow-with-description",
-          "ts-check": false,
         },
       ],
+      "no-empty": ["error", { allowEmptyCatch: true }],
     },
   },
   {

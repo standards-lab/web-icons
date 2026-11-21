@@ -1,6 +1,7 @@
 # Adapted from web-foundation (72e759f): .github/workflows/release.yml, for @standards-lab/web-icons.
 # Publishes the GitHub release of a pushed vX.Y.Z tag, dispatched by hand with the tag.
 # See README.md
+# See docs/internals.md
 name: Release
 
 on:
@@ -21,7 +22,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.1
+      - name: Check out every branch and tag
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
 
