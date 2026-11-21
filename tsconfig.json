@@ -1,7 +1,5 @@
 // Adapted from web-foundation (72e759f): tsconfig.json, for the plugin, which runs on node.
-// The build of the plugin, src/ into dist/ beside the generated sets: tsc emits each module's .js
-// and .d.ts. mise run types checks the same sources with --noEmit; tsconfig.test.json checks the
-// scripts and the suite.
+// The build of the plugin: src/ into dist/, beside the generated sets, each module's .js and .d.ts.
 {
   "compilerOptions": {
     "target": "es2024",

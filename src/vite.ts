@@ -1,5 +1,4 @@
-// Adapted from spike-html-hosting-sdk (f49087e): src/icons.ts, its fill as a Vite plugin of its
-// own, loading the icons from this package rather than from the site's root.
+// Adapted from spike-html-hosting-sdk (f49087e): src/icons.ts, its fill a Vite plugin loading this package's icons.
 // The marker fill, iconFill(), from @standards-lab/web-icons/vite: in every HTML page Vite serves
 // in dev or writes at build, each glyph marker, an empty <svg data-icon="<set>/<name>"></svg>, is
 // replaced by that icon's svg, and the page gains no script. A marker this package can't fill, or
@@ -9,32 +8,24 @@
 
 import type { Plugin } from "vite";
 
-/** The package the icons come from, as a failure names it. */
 const packageName = "@standards-lab/web-icons";
 
-/** An empty svg element, its attributes captured; a marker when they hold data-icon. */
-const svgElement = /<svg(\s[^>]*)?>\s*<\/svg>/gi;
+const emptySvgElement = /<svg(\s[^>]*)?>\s*<\/svg>/gi;
 
-/** An svg's start tag holding data-icon, however written; each must open a marker. */
-const iconTag = /<svg\s[^>]*?(?<=\s)data-icon(?=[\s=/>])[^>]*>/gi;
+const svgStartTagHoldingDataIcon = /<svg\s[^>]*?(?<=\s)data-icon(?=[\s=/>])[^>]*>/gi;
 
-/** An HTML comment, whose text holds no marker. */
-const comment = /<!--[\s\S]*?-->/g;
+const htmlComment = /<!--[\s\S]*?-->/g;
 
-/** A marker's icon name, <set>/<name>, which names no path outside its set's directory. */
-const iconName = /^[a-z0-9-]+\/[a-z0-9-]+$/;
+const setSlashName = /^[a-z0-9-]+\/[a-z0-9-]+$/;
 
-/** The value of the quoted attribute name in an element's attributes, if it has one. */
-const attributeValue = (attributes: string, name: string): string | undefined => {
+const quotedAttributeValue = (attributes: string, name: string): string | undefined => {
   const match = new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`).exec(attributes);
   return match === null ? undefined : (match[1] ?? match[2]);
 };
 
-/** An icon's svg, by its marker's name, <set>/<name>; rejects when the package holds none. */
 type LoadIcon = (icon: string) => Promise<string>;
 
-/** Loads each icon from this package's module beside this one, imported once per plugin. */
-function packageIcons(): LoadIcon {
+function iconsFromModulesBesideThisOne(): LoadIcon {
   const loaded = new Map<string, Promise<string>>();
   return (icon) => {
     let svg = loaded.get(icon);
@@ -54,22 +45,18 @@ function packageIcons(): LoadIcon {
   };
 }
 
-/** The page's html, page its path as a failure names it, with every glyph marker replaced by its
- * icon's svg from load, the marker's class carried onto it and its other attributes dropped;
- * rejects on a marker whose name isn't <set>/<name> or whose icon load can't give, naming the page
- * and the icon, and on an svg holding data-icon that isn't a marker, naming the page and its tag. */
 async function fillIcons(html: string, page: string, load: LoadIcon): Promise<string> {
-  const comments = [...html.matchAll(comment)].map(({ index, 0: text }) => [
+  const comments = [...html.matchAll(htmlComment)].map(({ index, 0: text }) => [
     index,
     index + text.length,
   ]);
   const outside = ({ index }: { index: number }): boolean =>
     !comments.some(([start, end]) => index > start && index < end);
-  const markers = [...html.matchAll(svgElement)].filter(
-    (marker) => outside(marker) && attributeValue(marker[1] ?? "", "data-icon") !== undefined,
+  const markers = [...html.matchAll(emptySvgElement)].filter(
+    (marker) => outside(marker) && quotedAttributeValue(marker[1] ?? "", "data-icon") !== undefined,
   );
   const opens = new Set(markers.map(({ index }) => index));
-  for (const { index, 0: tag } of html.matchAll(iconTag)) {
+  for (const { index, 0: tag } of html.matchAll(svgStartTagHoldingDataIcon)) {
     if (!opens.has(index) && outside({ index })) {
       throw new Error(
         `icons: ${page} holds ${tag}, which isn't an empty <svg data-icon="<set>/<name>"></svg>`,
@@ -79,8 +66,8 @@ async function fillIcons(html: string, page: string, load: LoadIcon): Promise<st
   if (markers.length === 0) return html;
   const svgs = await Promise.all(
     markers.map(async ([, attributes = ""]) => {
-      const icon = attributeValue(attributes, "data-icon") as string;
-      if (!iconName.test(icon)) {
+      const icon = quotedAttributeValue(attributes, "data-icon") as string;
+      if (!setSlashName.test(icon)) {
         throw new Error(`icons: ${page} names the icon "${icon}", which isn't <set>/<name>`);
       }
       let svg: string;
@@ -94,11 +81,10 @@ async function fillIcons(html: string, page: string, load: LoadIcon): Promise<st
           },
         );
       }
-      const className = attributeValue(attributes, "class");
+      const className = quotedAttributeValue(attributes, "class");
       return className === undefined ? svg : svg.replace(/^<svg/, `<svg class="${className}"`);
     }),
   );
-  // Each marker's svg in its place, from the last back, so each index still points at its marker.
   let filled = html;
   for (let i = markers.length - 1; i >= 0; i--) {
     const { index, 0: marker } = markers[i];
@@ -108,13 +94,14 @@ async function fillIcons(html: string, page: string, load: LoadIcon): Promise<st
 }
 
 /** The marker fill, a Vite plugin: every HTML page Vite serves in dev or writes at build, its
- * markers filled with this package's icons before Vite reads the page. */
+ * markers filled with this package's icons before Vite's own transforms read the page, the
+ * marker's class carried onto the svg and its other attributes dropped. The page fails, naming it
+ * and the icon, on a marker whose name isn't <set>/<name> or whose icon the package doesn't hold,
+ * and, naming it and the tag, on an svg holding data-icon that isn't an empty, quoted marker. */
 export function iconFill(): Plugin {
-  const load = packageIcons();
+  const load = iconsFromModulesBesideThisOne();
   return {
     name: "web-icons:fill",
-    // pre: the fill runs on the page as written, before Vite's own transforms read it, in dev and
-    // at build alike; ctx.path is the page's path from the root, /index.html, in both.
     transformIndexHtml: {
       order: "pre",
       handler: (html, { path }) => fillIcons(html, path, load),

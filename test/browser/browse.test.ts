@@ -1,11 +1,4 @@
-// Adapted from spike-html-hosting-icons (8b8d955): test/browser/browse.test.ts, on web-tooling
-// and web-foundation's registry key, with the selects' cases in place of the theme menu.
-// The browse page, served as mise run browse serves it over the dist/ mise run build writes, in the
-// pinned chrome-headless-shell, through what it shows: every released icon in its set's section
-// beside its name, each glyph its module's markup; every built-in profile, light and dark, at 1280
-// and 390 px, with nothing scrolling sideways, no name broken within a word, and the glyphs in the
-// text's color; the header's selects; and no error and no request off the local origin. A fixture
-// set, served in place of the released sets, covers a licence with no URL.
+// Adapted from spike-html-hosting-icons (8b8d955): test/browser/browse.test.ts, on web-tooling, with the selects' cases in place of the theme menu.
 
 import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -24,14 +17,12 @@ import type { CatalogSet } from "../../browse/catalog.d.ts";
 import { generateSet } from "../../scripts/generate.ts";
 import { CATALOG, catalog, PAGE, root, served } from "../../scripts/served.ts";
 
-/** The registry's names by facet, the first of each the default. */
 interface Registry {
   color: string[];
   space: string[];
   type: string[];
 }
 
-/** One run: a profile's facets and scheme, and a width. */
 interface Run {
   palette: string;
   space: string;
@@ -40,8 +31,6 @@ interface Run {
   width: number;
 }
 
-/** Every palette at the other facets' defaults, then each other space and type, each light and
- * dark, at 1280 and 390 px. */
 function runs(registry: Registry): Run[] {
   const [palette] = registry.color;
   const [space] = registry.space;
@@ -58,8 +47,7 @@ function runs(registry: Registry): Run[] {
   );
 }
 
-/** The viewport's size. */
-async function resize(page: Page, width: number, height = 800): Promise<void> {
+async function resizeViewport(page: Page, width: number, height = 800): Promise<void> {
   await page.cdp("Emulation.setDeviceMetricsOverride", {
     width,
     height,
@@ -69,11 +57,9 @@ async function resize(page: Page, width: number, height = 800): Promise<void> {
   await until(page, `innerWidth === ${width} && innerHeight === ${height}`);
 }
 
-/** Every released set's icons, as `<set>/<name>`, in the catalog's order. */
 const released = catalog(root).flatMap(({ name, icons }) => icons.map((icon) => `${name}/${icon}`));
 
-/** Each released icon's module's default export, by `<set>/<name>`, as node imports it. */
-const modules: Record<string, string> = Object.fromEntries(
+const releasedSvgsByIcon: Record<string, string> = Object.fromEntries(
   await Promise.all(
     released.map(async (icon) => {
       const url = pathToFileURL(join(root, "dist", `${icon}.js`)).href;
@@ -83,16 +69,9 @@ const modules: Record<string, string> = Object.fromEntries(
   ),
 );
 
-/** The glyphs, in a page expression: each list item of a set's section. */
-const ITEMS = `[...document.querySelectorAll("section .glyphs > li")]`;
+const GLYPH_ITEMS = `[...document.querySelectorAll("section .glyphs > li")]`;
 
-/**
- * Each name broken within a word, or wider than its box, in a page expression: a run of a name's
- * text up to and including its next hyphen whose characters lie on more than one line, or a name
- * element that scrolls. A name may break only after a hyphen, so each such run sits on one line,
- * and its longest word fits its cell.
- */
-const BROKEN = `${ITEMS}.flatMap((item) => {
+const NAMES_BROKEN_WITHIN_A_WORD_OR_OVERFLOWING = `${GLYPH_ITEMS}.flatMap((item) => {
   const name = item.querySelector(":scope > code");
   const found = [];
   if (name.scrollWidth > name.clientWidth) {
@@ -111,13 +90,7 @@ const BROKEN = `${ITEMS}.flatMap((item) => {
   return found;
 })`;
 
-/**
- * Each glyph whose paint isn't the text's, in a page expression: an element of the glyph's svg
- * with a fill or a stroke whose computed value isn't the computed color of its list item, or a
- * glyph with no such element, which would hold nothing to compare. The glyph is drawn only through
- * currentColor, so each such value resolves to that color.
- */
-const UNFOLLOWED = `${ITEMS}.flatMap((item) => {
+const GLYPH_PAINTS_OTHER_THAN_THE_TEXT_COLOR = `${GLYPH_ITEMS}.flatMap((item) => {
   const color = getComputedStyle(item).color;
   const paints = [...item.querySelectorAll(".glyph svg, .glyph svg *")].flatMap((element) =>
     ["fill", "stroke"]
@@ -130,36 +103,29 @@ const UNFOLLOWED = `${ITEMS}.flatMap((item) => {
     .map((value) => item.dataset.icon + ": " + value + " against " + color);
 })`;
 
-/** The foundation's localStorage key for the reader's choice. */
-const KEY = "web-foundation.preferences";
+const PREFERENCES_STORAGE_KEY = "web-foundation.preferences";
 
-/** The names the page registered, by facet, from the foundation's store at its well-known key. */
 const registered = (page: Page): Promise<Registry> =>
   page.evaluate(`(() => {
     const store = globalThis[Symbol.for("web-foundation.registry")];
     return { color: store.color, space: store.space, type: store.type };
   })()`);
 
-/** The page's stored choice, parsed, or null with none. */
 const stored = (page: Page) =>
-  page.evaluate(`JSON.parse(localStorage.getItem(${JSON.stringify(KEY)}))`);
+  page.evaluate(`JSON.parse(localStorage.getItem(${JSON.stringify(PREFERENCES_STORAGE_KEY)}))`);
 
-/** The root's four profile attributes, null where one is absent. */
 const rooted = (page: Page) =>
   page.evaluate(`Object.fromEntries(["data-palette", "data-space", "data-type", "data-scheme"]
     .map((name) => [name, document.documentElement.getAttribute(name)]))`);
 
-/** Each header select's value, by its name. */
 const selected = (page: Page) =>
   page.evaluate(`Object.fromEntries([...document.querySelectorAll("form[data-choice] select")]
     .map((select) => [select.name, select.value]))`);
 
-/** Each header select's options' values, by its name. */
 const options = (page: Page) =>
   page.evaluate(`Object.fromEntries([...document.querySelectorAll("form[data-choice] select")]
     .map((select) => [select.name, [...select.options].map((option) => option.value)]))`);
 
-/** Chooses the value in the header's select for the key, as a reader does. */
 const choose = (page: Page, key: string, value: string) =>
   page.evaluate(`(() => {
     const select = document.querySelector("form[data-choice] select[name=${key}]");
@@ -185,9 +151,8 @@ describe("the browse page", { timeout: 300_000 }, () => {
     await server?.stop();
   });
 
-  /** Loads the page at the viewport's width, its storage cleared, every glyph in it, rendered. */
   async function load(query = "", width = 1280) {
-    await resize(page, width);
+    await resizeViewport(page, width);
     await page.goto(`${server.origin}${PAGE}${query}`);
     await page.evaluate(`localStorage.clear()`);
     await page.goto(`${server.origin}${PAGE}${query}`);
@@ -197,7 +162,7 @@ describe("the browse page", { timeout: 300_000 }, () => {
   test("shows every released icon once, in its set's section, beside its name", async () => {
     await load();
     const shown: { set: string; name: string; icon: string }[] = await page.evaluate(
-      `${ITEMS}.map((item) => ({
+      `${GLYPH_ITEMS}.map((item) => ({
         set: item.closest("section").querySelector("h2 code").textContent,
         name: item.querySelector(":scope > code").textContent,
         icon: item.dataset.icon,
@@ -237,11 +202,11 @@ describe("the browse page", { timeout: 300_000 }, () => {
   test("draws each glyph as its module's markup: hidden, unfocusable, in currentColor", async () => {
     await load();
     const problems: string[] = await page.evaluate(`(() => {
-      const modules = ${JSON.stringify(modules)};
+      const releasedSvgsByIcon = ${JSON.stringify(releasedSvgsByIcon)};
       const template = document.createElement("template");
-      return ${ITEMS}.flatMap((item) => {
+      return ${GLYPH_ITEMS}.flatMap((item) => {
         const glyph = item.querySelector(".glyph");
-        template.innerHTML = modules[item.dataset.icon];
+        template.innerHTML = releasedSvgsByIcon[item.dataset.icon];
         const svg = glyph.firstElementChild;
         const found = [];
         if (glyph.childNodes.length !== 1 || !svg.isEqualNode(template.content.firstChild)) {
@@ -264,7 +229,7 @@ describe("the browse page", { timeout: 300_000 }, () => {
     const backgrounds = new Map<string, string>();
     for (const run of runs(registry)) {
       const label = `${run.palette} ${run.space} ${run.type} ${run.scheme} at ${run.width}px`;
-      await resize(page, run.width);
+      await resizeViewport(page, run.width);
       const shown: {
         overflow: number;
         broken: string[];
@@ -279,8 +244,8 @@ describe("the browse page", { timeout: 300_000 }, () => {
           await ${SETTLED};
           return {
             overflow: root.scrollWidth - root.clientWidth,
-            broken: ${BROKEN},
-            unfollowed: ${UNFOLLOWED},
+            broken: ${NAMES_BROKEN_WITHIN_A_WORD_OR_OVERFLOWING},
+            unfollowed: ${GLYPH_PAINTS_OTHER_THAN_THE_TEXT_COLOR},
             background: getComputedStyle(document.body).backgroundColor,
           };
         })()`);
@@ -306,7 +271,7 @@ describe("the browse page", { timeout: 300_000 }, () => {
       await page.evaluate(`({
         background: getComputedStyle(document.body).backgroundColor,
         scheme: document.documentElement.dataset.scheme,
-        unfollowed: ${UNFOLLOWED},
+        unfollowed: ${GLYPH_PAINTS_OTHER_THAN_THE_TEXT_COLOR},
       })`);
     assert.equal(dark.scheme, "dark");
     assert.notEqual(dark.background, light);
@@ -422,7 +387,6 @@ describe("the browse page on a fixture set", { timeout: 60_000 }, () => {
   const fixture = join(root, "test/fixtures/sets/tiny");
   const out = mkdtempSync(join(tmpdir(), "browse-"));
   const info: IconifyInfo = JSON.parse(readFileSync(join(fixture, "info.json"), "utf8"));
-  /** The tiny fixture, whose licence has an SPDX identifier and no URL, as the only set. */
   const sets: CatalogSet[] = [
     {
       name: "tiny",
@@ -441,7 +405,6 @@ describe("the browse page on a fixture set", { timeout: 60_000 }, () => {
   before(async () => {
     server = await serve({
       ...served,
-      // The fixture's catalog and its generated modules, in place of the released sets'.
       handler: (request, response) => {
         const { pathname } = new URL(request.url ?? "/", "http://localhost");
         const module = pathname.match(/^\/dist\/tiny\/([a-z0-9-]+)\.js$/);

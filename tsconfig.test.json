@@ -1,8 +1,6 @@
-// Adapted from spike-html-hosting-icons (8b8d955): tsconfig.json, without eslint.config.js, as
-// web-foundation's (72e759f) type check leaves it out, split as web-foundation's tsconfig.test.json.
-// The type check of the scripts and the suite, mise run types:test: the TypeScript node runs under
-// its type stripping, and the Vite fixtures', checked against dist/ as a consumer's code is and
-// never emitted.
+// Adapted from spike-html-hosting-icons (8b8d955): tsconfig.json, without eslint.config.js.
+// Adapted from web-foundation (72e759f): tsconfig.test.json, its split from the build.
+// The type check of the scripts, the suite, and the Vite fixtures, against dist/, never emitting.
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {

@@ -1,9 +1,10 @@
 // Adapted from web-foundation (72e759f): eslint.config.js, its layer table cut to the icons'.
 // Adapted from web-components (a659353): eslint.config.js, its policies naming a package.
-// The lint the check runs: the recommended rules, the layer's imports in src/, and every .css
-// import a CSS module script. The icon modules are the generator's output, in dist/, which ESLint
-// doesn't read; the layer table judges the handwritten sources in src/.
+// The lint the check runs: the recommended rules, every suppression's reason, the layer's imports
+// in src/, and every .css import a CSS module script.
+// See docs/internals.md
 
+import comments from "@eslint-community/eslint-plugin-eslint-comments";
 import js from "@eslint/js";
 import { defineConfig } from "eslint/config";
 import boundaries from "eslint-plugin-boundaries";
@@ -13,22 +14,18 @@ import tseslint from "typescript-eslint";
 
 const code = ["**/*.js", "**/*.ts"];
 
-// The attribute a CSS module script carries among a declaration's attributes, by its key's name
-// or its quoted key.
-const cssType = `:matches(ImportAttribute[key.name='type'], ImportAttribute[key.value='type'])[value.value='css']`;
-const cssSource = "[source.value=/\\.css$/]";
-// An import() whose specifier ends in .css: a string, or a template whose last part does, matched
-// at that part.
-const cssDynamic = [
-  `ImportExpression${cssSource}`,
+const cssModuleScriptAttribute = `:matches(ImportAttribute[key.name='type'], ImportAttribute[key.value='type'])[value.value='css']`;
+const cssSpecifier = "[source.value=/\\.css$/]";
+const cssDynamicImports = [
+  `ImportExpression${cssSpecifier}`,
   "ImportExpression > TemplateLiteral.source > TemplateElement[tail=true][value.cooked=/\\.css$/]",
 ];
 const cssImports = [
   ...["ImportDeclaration", "ExportNamedDeclaration", "ExportAllDeclaration"].map((type) => ({
-    selector: `${type}${cssSource}:not(:has(${cssType}))`,
+    selector: `${type}${cssSpecifier}:not(:has(${cssModuleScriptAttribute}))`,
     message: "A .css import is a CSS module script: add with { type: 'css' }.",
   })),
-  ...cssDynamic.map((selector) => ({
+  ...cssDynamicImports.map((selector) => ({
     selector,
     message:
       "A .css file is imported statically, as a CSS module script with { type: 'css' }, never by " +
@@ -36,23 +33,17 @@ const cssImports = [
   })),
 ];
 
-// The layer table cut to the icons: its sources, the plugin, which may import themselves and, by
-// name, vite, the package's one peer, for the plugin's types.
+/** The layer table cut to the icons: its sources, the plugin, which may import themselves and, by
+ * name, vite, the package's one peer, for the plugin's types. */
 export const layers = [{ name: "icons", path: "src", may: ["icons", "vite"] }];
 
-// The layer is an element by its directory, matched from the root (partialMatch false), with a
-// second pattern for a file in a directory whose name starts with a dot, which micromatch's **
-// never enters, so ./.well-known/ and ./..x/ stay in the layer.
-const elements = layers.map(({ name, path }) => ({
+const layerElements = layers.map(({ name, path }) => ({
   type: name,
   pattern: [path, `${path}/**/.*`],
   partialMatch: false,
 }));
 
-// The rule's default is disallow, and it checks every origin (a package is external) and local
-// files no element holds: an import passes only when a policy names its target, the layer or a
-// package the table names, which the rule matches by its name, any subpath of it.
-const policies = layers.map(({ name, may }) => ({
+const layerPolicies = layers.map(({ name, may }) => ({
   from: { element: { type: name } },
   allow: {
     to: may.map((target) =>
@@ -63,13 +54,7 @@ const policies = layers.map(({ name, may }) => ({
   },
 }));
 
-// A declaration file (a handwritten .d.ts) has no runtime, so an import that resolves to one passes
-// only as a type import, `import type` or `export type`, which tsc erases: the last policy refuses
-// any other kind, and as the last whose selector matches it overrides the allow before it. The
-// dependency's kind is the declaration's, so `import { type X }` is a value import here, as it is
-// to verbatimModuleSyntax, which keeps it as `import {}` and so loads the file. checkInternals has
-// the rule judge an import within the layer too, which the layer's policy allows.
-const declarations = {
+const declarationFilesAsTypeImportsOnly = {
   disallow: { to: { internalPath: "**/*.d.ts" }, dependency: { kind: "value" } },
   message:
     "A .d.ts file is a declaration with no runtime: import it with `import type` (or export " +
@@ -77,12 +62,27 @@ const declarations = {
 };
 
 export default defineConfig([
-  // The build, gitignored, which ESLint doesn't read.
   { ignores: ["dist/"] },
   { files: code, extends: [js.configs.recommended, tseslint.configs.recommended] },
   { files: code, languageOptions: { globals: globals.browser } },
   { files: code, rules: { "no-restricted-syntax": ["error", ...cssImports] } },
-  // The suite and the scripts, the generator among them, run on node.
+  {
+    files: code,
+    plugins: { "@eslint-community/eslint-comments": comments },
+    rules: {
+      "@eslint-community/eslint-comments/require-description": "error",
+      "@typescript-eslint/ban-ts-comment": [
+        "error",
+        {
+          "ts-check": false,
+          "ts-expect-error": "allow-with-description",
+          "ts-ignore": "allow-with-description",
+          "ts-nocheck": "allow-with-description",
+        },
+      ],
+      "no-empty": ["error", { allowEmptyCatch: true }],
+    },
+  },
   {
     files: ["test/**/*.js", "test/**/*.ts", "scripts/**"],
     languageOptions: { globals: globals.node },
@@ -93,17 +93,10 @@ export default defineConfig([
     settings: {
       "import/resolver": { typescript: true },
       "import-x/resolver": { typescript: true },
-      "boundaries/elements": elements,
+      "boundaries/elements": layerElements,
     },
-    // The rule judges the file an import resolves to, never the specifier's text, and
-    // no-unresolved fails a specifier that names no file, so no import passes by naming none.
     rules: {
       "import-x/no-unresolved": "error",
-      // Each judges an import against package.json: a package name it doesn't declare in
-      // dependencies, which it holds none of (a devDependency ships nothing), in every import form
-      // (includeTypes), an internal one among them (includeInternal), and a relative path that
-      // reaches another package's files. The package's own name passes here, since the
-      // manifest has an exports field; boundaries/dependencies refuses it, as it resolves to dist/.
       "import-x/no-extraneous-dependencies": [
         "error",
         { devDependencies: false, includeInternal: true, includeTypes: true },
@@ -116,7 +109,7 @@ export default defineConfig([
           checkAllOrigins: true,
           checkUnknownLocals: true,
           checkInternals: true,
-          policies: [...policies, declarations],
+          policies: [...layerPolicies, declarationFilesAsTypeImportsOnly],
         },
       ],
     },

@@ -1,6 +1,5 @@
 # Adapted from web-foundation (72e759f): .github/workflows/ci.yml.
-# mise run install installs every pin mise.toml names, the chrome-headless-shell the browser tier
-# runs in included.
+# The check on each pull request to main and each push to it.
 
 name: CI
 

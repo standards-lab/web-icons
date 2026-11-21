@@ -20,6 +20,10 @@ The architecture pages that apply, in the architecture repository:
 - `architecture/principles/downward-dependencies.md`: the icons sit on the foundation, below the
   components and the SDK, and import nothing above them; only the dev-only browse page loads the
   foundation.
+- `architecture/principles/comments.md`: every comment is one of the five kinds (package
+  documentation, a suppression's reason, a pin hold's reason, provenance, a reference) in
+  TypeScript, JavaScript, shell, CSS, HTML, tests, and every configuration file (TOML, YAML,
+  JSONC, `.gitignore`, `.prettierignore`).
 - `architecture/principles/validation-first.md`: the generator checks a set's licence, prefix, and
   icon names before it writes a module, and the fill checks every marker before a page is served.
 
@@ -34,8 +38,7 @@ The architecture pages that apply, in the architecture repository:
   glyphs.
 - A held LICENSE is the upstream's byte for byte, fetched at the tag its `@iconify-json` package
   follows, and moves only with that package's pin.
-- A new set is a minor release, named with its licence in the CHANGELOG (README.md, "Adding a
-  set").
+- A new set is a minor release, named with its licence in the CHANGELOG (`docs/adding-a-set.md`).
 - An icon names nothing and takes no focus; the text or label beside a glyph names it, and the
   fill adds no accessible name.
 
@@ -73,11 +76,18 @@ The architecture pages that apply, in the architecture repository:
 ## Code
 
 - Code meets the bar of spike-html-conventions' `layers/` code at a88828a: a header of about 2–6
-  lines, a one-line doc comment per export, and comments only for a non-obvious why.
-- A copied file names its source repository and commit in a provenance line, which reads
-  `From|Adapted from <repo> (<commit>): <path>`. It names the immediate source alone; that source
-  keeps the earlier lines. A JSON file, which takes no comment, has its line in
-  `context/README.md`.
+  lines and a one-line doc comment per export.
+- A module's or a script's header documents the public contract, what it provides and promises,
+  with no reasoning, and each export carries a one-line doc comment. A doc comment on a
+  non-exported symbol, an in-body comment, and a test's comment are none of the five kinds: their
+  reasoning goes into names, exported docs, or a `docs/` page behind a one-line `See` reference,
+  and a script's sections become named functions. A configuration file's header is at most a short
+  description plus `See` lines. A lint directive carries its reason as its `--` description.
+- A copied file names each source repository and commit in one provenance line per source, which
+  reads `From|Adapted from <repo> (<commit>): <path>`, plus at most a short clause naming what
+  changed, never why, and a third-party source's licence after a semicolon. The lines its immediate
+  source carried for earlier sources stay beside that source's own. A JSON file, which takes no
+  comment, has its line in `context/README.md`.
 - Sources use `.ts` relative specifiers, which tsc rewrites; a handwritten `.d.ts` keeps `.js`.
 - Tests are TypeScript run under Node's type stripping, erasable syntax only, type-checked by
   `tsconfig.test.json`; browser-served fixtures stay `.js`.

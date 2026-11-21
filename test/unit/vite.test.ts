@@ -1,11 +1,4 @@
-// Adapted from spike-html-hosting-sdk (f49087e): test/unit/icons.test.ts, its cases on the fill run
-// through the plugin's page transform, and its Markdown pages' cases replaced by the fixture Vite
-// projects.
-// The marker fill, iconFill() from the built @standards-lab/web-icons/vite, as the package's own
-// name resolves it: its page transform on pages it fills, leaves unchanged, and fails, naming the
-// page; then the fixture projects in test/fixtures/, vite/ and vite-unknown/, run by Vite as a dev
-// server answering their pages and as a build into a scratch directory, the build's script
-// carrying exactly the two icons it imports, and the unknown icon failing both with one message.
+// Adapted from spike-html-hosting-sdk (f49087e): test/unit/icons.test.ts, its cases run through the plugin and fixture Vite projects.
 
 import assert from "node:assert/strict";
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
@@ -24,7 +17,6 @@ const root = join(import.meta.dirname, "../..");
 const fixtures = join(root, "test/fixtures");
 
 const scratches: string[] = [];
-/** A new temporary directory, removed after the run. */
 function scratchDir(): string {
   const scratch = mkdtempSync(join(tmpdir(), "vite-"));
   scratches.push(scratch);
@@ -34,7 +26,6 @@ after(() => {
   for (const scratch of scratches) rmSync(scratch, { recursive: true, force: true });
 });
 
-/** The plugin's page transform, as Vite runs it on the page at path. */
 function fill(html: string, path = "/index.html"): Promise<unknown> {
   const hook = iconFill().transformIndexHtml;
   assert.ok(hook && typeof hook === "object", "transformIndexHtml isn't an ordered hook");
@@ -109,8 +100,6 @@ describe("the marker fill", () => {
   });
 });
 
-/** The fixture project `name`'s inline config: its own vite.config.ts, quiet, with its cache in a
- * scratch directory. */
 function fixtureConfig(name: string) {
   const project = join(fixtures, name);
   return {
@@ -121,8 +110,6 @@ function fixtureConfig(name: string) {
   };
 }
 
-/** Each page the fixture project `name` serves in dev, by its path, as its response's status and
- * text. */
 async function serve(name: string, paths: string[]): Promise<{ status: number; text: string }[]> {
   const server = await createServer({ ...fixtureConfig(name), server: { port: 0 } });
   try {
@@ -140,14 +127,12 @@ async function serve(name: string, paths: string[]): Promise<{ status: number; t
   }
 }
 
-/** The fixture project `name` built into a new scratch directory, which it returns. */
 async function buildFixture(name: string): Promise<string> {
   const outDir = scratchDir();
   await build({ ...fixtureConfig(name), build: { outDir, emptyOutDir: true } });
   return outDir;
 }
 
-/** The fixture page at path as written, its markers as the fill replaces them. */
 function filledSource(path: string): string {
   return readFileSync(join(fixtures, "vite", path), "utf8")
     .replace('<svg data-icon="octicon/question-16"></svg>', question)
@@ -158,7 +143,6 @@ const gearGlyph = gear.replace(/^<svg/, '<svg class="glyph"');
 const comment =
   '<!-- A marker in a comment stays as written: <svg data-icon="octicon/alert-16"></svg> -->';
 
-/** The message the unknown fixture's page fails with, in dev and at build. */
 const unknownMessage =
   "icons: /index.html names the icon octicon/no-such-icon-16, which @standards-lab/web-icons " +
   "doesn't hold";
@@ -166,13 +150,12 @@ const unknownMessage =
 describe("the fixture project", () => {
   test("in dev, answers each page filled with its icons, gaining only Vite's client", async () => {
     const [index, help] = await serve("vite", ["/", "/pages/help.html"]);
-    // Vite's dev server adds its client's script to each page it serves; the fill adds none.
-    const client = /<script type="module" src="\/@vite\/client"><\/script>\s*/;
+    const viteClientScript = /<script type="module" src="\/@vite\/client"><\/script>\s*/;
     assert.equal(index.status, 200);
-    assert.equal(index.text.replace(client, ""), filledSource("index.html"));
+    assert.equal(index.text.replace(viteClientScript, ""), filledSource("index.html"));
     assert.ok(index.text.includes(comment));
     assert.equal(help.status, 200);
-    assert.equal(help.text.replace(client, ""), filledSource("pages/help.html"));
+    assert.equal(help.text.replace(viteClientScript, ""), filledSource("pages/help.html"));
   });
 
   test("at build, writes each page filled with its icons", async () => {
@@ -193,14 +176,13 @@ describe("the fixture project", () => {
       .filter((file) => file.endsWith(".js"))
       .map((file) => readFileSync(join(out, "assets", file), "utf8"))
       .join("\n");
-    // Every distinct icon markup the package ships, an alias's being its parent's.
     const octicon = join(root, "dist/octicon");
-    const markups = new Set<string>();
+    const distinctShippedMarkups = new Set<string>();
     for (const file of readdirSync(octicon).filter((file) => file.endsWith(".js"))) {
-      markups.add((await import(pathToFileURL(join(octicon, file)).href)).default);
+      distinctShippedMarkups.add((await import(pathToFileURL(join(octicon, file)).href)).default);
     }
-    assert.ok(markups.size > 2);
-    const carried = [...markups].filter((svg) => scripts.includes(svg)).sort();
+    assert.ok(distinctShippedMarkups.size > 2);
+    const carried = [...distinctShippedMarkups].filter((svg) => scripts.includes(svg)).sort();
     assert.deepEqual(carried, [gear, x].sort());
   });
 });
@@ -209,10 +191,9 @@ describe("a page naming an icon the package doesn't hold", () => {
   test("in dev, fails the page's request with the message, sending none of its markup", async () => {
     const [index] = await serve("vite-unknown", ["/"]);
     assert.equal(index.status, 500);
-    // Vite's error page carries the error as JSON, for its overlay.
-    const error = /const error = (\{.*\})\n/.exec(index.text);
-    assert.ok(error, "the response isn't Vite's error page");
-    assert.equal((JSON.parse(error[1]) as { message: string }).message, unknownMessage);
+    const overlayErrorJson = /const error = (\{.*\})\n/.exec(index.text);
+    assert.ok(overlayErrorJson, "the response isn't Vite's error page");
+    assert.equal((JSON.parse(overlayErrorJson[1]) as { message: string }).message, unknownMessage);
     assert.ok(!index.text.includes("<svg"));
     assert.ok(!index.text.includes('aria-label="Help"'));
   });

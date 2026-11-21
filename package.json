@@ -21,6 +21,7 @@
     }
   },
   "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "4.8.1",
     "@eslint/js": "10.0.1",
     "@iconify-json/octicon": "1.2.40",
     "@iconify/types": "2.0.0",

@@ -1,13 +1,13 @@
 <!doctype html>
-<!-- Adapted from spike-html-hosting-icons (8b8d955): browse/index.html, on web-foundation's full
-     entry, its Theme button and theme menu replaced by plain selects, as web-foundation's
-     (72e759f) demo/theme.html carries them.
+<!-- Adapted from spike-html-hosting-icons (8b8d955): browse/index.html, its theme menu replaced by plain selects.
+     Adapted from web-foundation (72e759f): demo/theme.html, its plain selects.
      The browse page, dev-only and never packed: every glyph of every released set, by set, each
      beside its name. scripts/served.ts serves it at /browse/, for mise run browse, the browser
      tier, and mise run screenshots. It loads the foundation as a site does, every profile
      registered and the stored choice applied before first paint; the query's palette, space,
      type, and scheme set the root's attributes first, which a stored choice replaces.
-     window.errors collects the page's errors; window.ready settles once every glyph is in it. -->
+     window.errors collects the page's errors; window.ready settles once every glyph is in it.
+     See docs/internals.md -->
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -30,14 +30,6 @@
     </script>
     <link rel="stylesheet" href="/deps/@standards-lab/web-foundation/dist/page-full.css" />
     <style>
-      /* The page's layout: the header's title and selects in a row that wraps, then each set's
-         section, its glyphs in a grid of cells as many as the width holds, two to a row at 390px,
-         and never wider than the page. A glyph is drawn at 2rem in the text's color, which its
-         markup's currentColor follows; a name is set small and breaks only at the <wbr> browse.js
-         puts after each of its hyphens, never within a word. So a cell's minimum is its padding
-         and 6.5rem of name: the longest word with its hyphen, "accessibility-", is 14 characters
-         of monospace at 0.75rem, about 6.2rem, and the cell's border is 2px. Three cells to a row
-         at 390px would leave each name less than 5rem, so the minimum gives up the third. */
       body {
         display: grid;
         align-content: start;
@@ -107,8 +99,6 @@
         max-inline-size: 100%;
       }
     </style>
-    <!-- The foundation's bare specifiers, onto the installed package's dist/, as its exports map
-         them; the server answers /deps/. -->
     <script type="importmap">
       {
         "imports": {

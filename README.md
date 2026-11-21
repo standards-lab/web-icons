@@ -131,77 +131,17 @@ sha256. The build ships it as `dist/<set>/LICENSE`, beside `LICENSE.provenance`,
 that repository and commit. Octicons' is primer/octicons' LICENSE at commit `9a274e2`, tag
 `@primer/octicons@19.42.0`.
 
-### Adding a set
-
-A set is added in a minor release, by three changes: the set's `@iconify-json/<set>` package as an
-exact devDependency; its upstream LICENSE in `licenses/<set>/LICENSE`, byte for byte, fetched at
-the upstream tag the package's data follows; and its entry in `sets.json`, naming the package, the
-LICENSE's path and sha256, and the repository, commit, and tag it was fetched from. The build then
-generates it into `dist/<set>/`, or fails naming the set when its licence isn't one of those above.
-The version's minor number moves, as the release adds modules and removes none, and the
-CHANGELOG's entry names the set and its licence.
-
-## Glyph source
-
-The glyph data comes from [Iconify](https://iconify.design)'s per-set packages, `@iconify-json/*`,
-read at this package's build, never at a consumer's. Iconify is MIT-licensed code from Iconify OÜ,
-Estonia. Its data keeps each set's upstream licence, modified by Iconify Tools, and follows each
-set's upstream repository, some sets within minutes of an upstream release, others days behind.
-
-Iconify is a single-maintainer risk: one maintainer, cyberalien, made 87% of iconify/iconify's
-human commits and 99% of iconify/icon-sets'. The released modules don't depend on it: each is a
-plain string, so a release already cut keeps working whatever becomes of Iconify, and only the
-next build would need another source of the same set.
+[docs/adding-a-set.md](https://github.com/standards-lab/web-icons/blob/main/docs/adding-a-set.md)
+gives the three changes that add a set, and
+[docs/glyph-source.md](https://github.com/standards-lab/web-icons/blob/main/docs/glyph-source.md)
+where the glyph data comes from and what rests on Iconify.
 
 ## Development
 
-Tasks run through [mise](https://mise.jdx.dev):
-
-```
-mise run install      # the pinned tools, and node_modules with the foundation and the tooling at their tags; reads the network
-mise run check        # lint, types, the build, and the unit and browser tiers; reads no network
-mise run build        # generate sets.json's sets into a fresh dist/, and build the plugin beside them
-mise run browse       # serve the browse page on a loopback port and print its URL; Ctrl-C stops it
-mise run screenshots  # capture the browse page wide and narrow, light and dark, inline in kitty
-mise run preview      # regenerate this README's preview, docs/preview-light.png and docs/preview-dark.png
-mise run currency     # report every tool, package, and action pin, the @iconify-json set, the vite peer's range, and the foundation's and the tooling's tags behind its latest
-```
-
-`browse/index.html` is the browse page: every shipped icon, each beside its name, in sections by
-set, each section naming the set's licence and its upstream tag. It runs on web-foundation
-v0.4.0's full entry. Plain selects for color, scheme, space, and type show the profile the page's
-root carries, so they follow the stored choice, the URL query (`?palette=github&scheme=dark`, set
-before the first paint), and another tab's save; a change applies and saves at once. It is
-dev-only: the pack carries `dist/` alone, so the page and what serves it never ship.
-`scripts/served.ts` serves it at `/browse/`, with each glyph the built `dist/<set>/<name>.js`,
-imported as a consumer imports it; the foundation under `/deps/`, which the page's import map
-names; and the catalog, made from `sets.json` and `dist/` at each request.
-
-`mise run screenshots` captures the browse page whole, wide and narrow, light and dark. It runs the
-`web-screenshots` bin of [web-tooling](https://github.com/standards-lab/web-tooling), the
-devDependency the browser tier's driver and server also come from, over the capture description in
-`scripts/screenshots.config.ts`, and passes its arguments on. With none it captures the default
-profile; `--palette`, `--space`, and `--type` choose a profile, and `--all` captures every color
-and compact and sans. `--output directory --dir <path>` writes the files instead of showing them
-in kitty; `mise run screenshots -- --help` lists the other flags, and web-tooling's README
-documents them. The check never runs `browse` or `screenshots`, though the browser tier runs the
-screenshots command once.
-
-`mise run preview` regenerates the preview at the top of this README, `docs/preview-light.png` and
-`docs/preview-dark.png`: the browse page's first wide tile, 1280 px wide and at most 1200 px tall,
-at the default profile, light and dark. It runs the screenshots command over the same description,
-into a scratch directory it removes, and copies those two tiles; given a directory, it writes them
-there instead. Run it, and commit the two files, when the browse page's look changes. `docs/` is
-never packed, so the images stay out of the release; the README links them from `main` by
-absolute URL, so they show at a release tag and in an installed package too. The browser tier runs the script once, into a
-scratch directory, and holds each image to its scheme's first wide tile.
-
-The unit tier runs the generator on fixture sets in Iconify's layout, `test/fixtures/sets/`, the
-plugin through two fixture Vite projects as a dev server and as a build, the release rule on the
-manifest, and a pack of the build installed into a scratch consumer. The browser tier checks the
-browse page in the pinned chrome-headless-shell, in every built-in profile, light and dark, at
-1280 and 390 px. The check lints with ESLint, Prettier, shellcheck, and actionlint. CI runs `mise
-run install` and the check on each pull request to main and each push to it.
+[docs/development.md](https://github.com/standards-lab/web-icons/blob/main/docs/development.md)
+gives the tasks, the browse page, the screenshots and preview commands, and the test tiers, and
+[docs/internals.md](https://github.com/standards-lab/web-icons/blob/main/docs/internals.md)
+holds the reasoning behind the configuration, the scripts, and the sources.
 
 ## Release
 
@@ -238,13 +178,13 @@ changed or re-cut.
 
 ## Provenance
 
-The package is seeded by copy from spike-html-hosting-icons at 8b8d955: the generator, its tests
-and fixture sets, and the browse page and what serves it. The marker fill comes from
+The package is seeded by copy from spike-html-hosting-icons at 8b8d955: the generator, its tests and
+fixture sets, and the browse page and what serves it. The marker fill comes from
 spike-html-hosting-sdk at f49087e, its `src/icons.ts`, made a Vite plugin of its own that fills in
 dev as well as at build. The scaffold, the workflows, this README's shape, the CHANGELOG, and the
 browse page's selects come from web-foundation at 72e759f. Both spikes are archived and never a
-dependency. Each copied file that takes comments names its source in a provenance line; the JSON
-files' provenance is in `context/README.md`.
+dependency. Each copied file that takes comments names each of its sources in a provenance line; the
+JSON files' provenance is in `context/README.md`.
 
 ## License
 
