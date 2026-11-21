@@ -39,8 +39,8 @@ at the default profile, light and dark. It runs the screenshots command over the
 into a scratch directory it removes, and copies those two tiles; given a directory, it writes them
 there instead. Run it, and commit the two files, when the browse page's look changes. `docs/` is
 never packed, so the images stay out of the release; the README links them from `main` by
-absolute URL, so they show at a release tag and in an installed package too. The browser tier runs the script once, into a
-scratch directory, and holds each image to its scheme's first wide tile.
+absolute URL, so they show at a release tag and in an installed package too. The browser tier runs
+the script once, into a scratch directory, and holds each image to its scheme's first wide tile.
 
 The unit tier runs the generator on fixture sets in Iconify's layout, `test/fixtures/sets/`, the
 plugin through two fixture Vite projects as a dev server and as a build, the release rule on the

@@ -1,7 +1,7 @@
 # Internals
 
-Why the repository's configuration, scripts, and sources are set as they are: the reasoning their
-`See docs/internals.md` lines point at.
+This page gives the reasoning behind the repository's configuration, scripts, and sources, which
+their `See docs/internals.md` lines point at.
 
 ## Tools and tasks (`mise.toml`)
 
