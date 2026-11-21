@@ -89,6 +89,14 @@ code, JSON, and CSS files are let back in. Prettier also skips what `.gitignore`
   `--scheme`, so it is light and dark. A page that fits a single tile has one capture, which
   stands in for its first tile.
 
+## The release rule (`test/unit/release.ts`)
+
+`packInto` in `test/unit/release.ts` sets pnpm's store directory under the pack's destination, in
+the environment: unless a store directory is configured, pnpm first probes where its store should
+live by writing a short-lived `_tmp_<pid>_<hex>` file into the project, and the browser tier, which
+may be running beside the unit tier, checks that the repository's untracked files don't change. The
+`--store-dir` flag still probes; pack reads no store, so pnpm never creates it.
+
 ## Release workflow (`.github/workflows/release.yml`)
 
 README.md's "Release" gives the steps and why the workflow is dispatched rather than run by the

@@ -13,14 +13,14 @@ mise run currency     # report every tool, package, and action pin, the @iconify
 ```
 
 `browse/index.html` is the browse page: every shipped icon, each beside its name, in sections by
-set, each section naming the set's licence and its upstream tag. It runs on web-foundation
-v0.4.0's full entry. Plain selects for color, scheme, space, and type show the profile the page's
-root carries, so they follow the stored choice, the URL query (`?palette=github&scheme=dark`, set
-before the first paint), and another tab's save; a change applies and saves at once. It is
-dev-only: the pack carries `dist/` alone, so the page and what serves it never ship.
-`scripts/served.ts` serves it at `/browse/`, with each glyph the built `dist/<set>/<name>.js`,
-imported as a consumer imports it; the foundation under `/deps/`, which the page's import map
-names; and the catalog, made from `sets.json` and `dist/` at each request.
+set, each section naming the set's licence and its upstream tag. It runs on the pinned
+web-foundation release's full entry. Plain selects for color, scheme, space, and type show the
+profile the page's root carries, so they follow the stored choice, the URL query
+(`?palette=github&scheme=dark`, set before the first paint), and another tab's save; a change
+applies and saves at once. It is dev-only: the pack carries `dist/` alone, so the page and what
+serves it never ship. `scripts/served.ts` serves it at `/browse/`, with each glyph the built
+`dist/<set>/<name>.js`, imported as a consumer imports it; the foundation under `/deps/`, which the
+page's import map names; and the catalog, made from `sets.json` and `dist/` at each request.
 
 `mise run screenshots` captures the browse page whole, wide and narrow, light and dark. It runs the
 `web-screenshots` bin of [web-tooling](https://github.com/standards-lab/web-tooling), the
