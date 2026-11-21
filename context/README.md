@@ -20,8 +20,8 @@ README.md's "Release" section gives the steps and what the workflow verifies.
 
 ## Provenance
 
-Each copied file that takes comments names its source in a provenance line. These files take none,
-so their provenance is here:
+Each copied file that takes comments names each of its sources in a provenance line. These files
+take none, so their provenance is here:
 
 - `package.json` is adapted from web-foundation (72e759f): package.json. It is renamed
   `@standards-lab/web-icons` at 0.1.0, its exports the icons by `<set>/<name>` and the plugin by
