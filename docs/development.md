@@ -28,7 +28,8 @@ devDependency the browser tier's driver and server also come from, over the capt
 `scripts/screenshots.config.ts`, and passes its arguments on. With none it captures the default
 profile; `--palette`, `--space`, and `--type` choose a profile, and `--all` captures every color
 and compact and sans. `--output directory --dir <path>` writes the files instead of showing them
-in kitty; `mise run screenshots -- --help` lists the other flags, and web-tooling's README
+in kitty; `mise run screenshots -- --help` lists the other flags, and web-tooling's
+[docs/screenshots.md](https://github.com/standards-lab/web-tooling/blob/main/docs/screenshots.md)
 documents them. The check never runs `browse` or `screenshots`, though the browser tier runs the
 screenshots command once.
 
