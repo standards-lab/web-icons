@@ -1,7 +1,4 @@
 // Adapted from web-foundation (72e759f): test/unit/release.test.ts, on the manifest's rule.
-// The release rule, release.ts's releaseProblems, on a pnpm pack of the build, extracted: as it
-// stands, and in scratch copies with one fault each, in its package.json or its LICENSE. It packs
-// the dist/ that mise run build writes.
 
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
@@ -15,14 +12,12 @@ import type { Manifest } from "./release.ts";
 const root = join(import.meta.dirname, "../..");
 const scratches: string[] = [];
 
-/** A new temporary directory, removed after the run. */
 function scratchDir() {
   const scratch = mkdtempSync(join(tmpdir(), "release-"));
   scratches.push(scratch);
   return scratch;
 }
 
-// The pack under test: pnpm pack's tarball, extracted, its package/ directory.
 let pack: string;
 before(() => {
   const scratch = scratchDir();
@@ -33,11 +28,8 @@ after(() => {
   for (const scratch of scratches) rmSync(scratch, { recursive: true, force: true });
 });
 
-/** A fault: a change to a pack's copy, given its directory and its manifest, every field of which
- * the pack declares. */
 type Change = (dir: string, manifest: Required<Manifest>) => void;
 
-/** A scratch copy of the pack, `change` applied to it and its manifest, and its problems. */
 function faulted(change: Change) {
   const copy = join(scratchDir(), "package");
   cpSync(pack, copy, { recursive: true });

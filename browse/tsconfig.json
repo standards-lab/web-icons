@@ -1,9 +1,5 @@
-// Adapted from spike-html-hosting-icons (8b8d955): browse/tsconfig.json, checking JavaScript as
-// the root tsconfig.json no longer does.
-// The browse page's modules, browse.js and choice.js, type-checked as the browser runs them
-// (mise run types:browse), never emitting: the DOM's lib, the catalog typed by catalog.d.ts, which
-// names served.ts's shape, and the foundation's modules by their declarations, as the page's
-// import map names them.
+// Adapted from spike-html-hosting-icons (8b8d955): browse/tsconfig.json, checking JavaScript.
+// The type check of the browse page's modules under the DOM's lib, never emitting.
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {

@@ -4,11 +4,11 @@
 // module's default export, imported as a consumer imports it, set as the markup of its cell beside
 // its name. window.ready settles once every glyph is in the page, or rejects naming the module
 // that failed to load.
+// See docs/internals.md
 
 import sets from "./catalog.js";
 
-/** An element of `tag` with its text, or its children, appended.
- * @param {string} tag
+/** @param {string} tag
  * @param {(Node | string)[]} children */
 function element(tag, ...children) {
   const node = document.createElement(tag);
@@ -16,8 +16,7 @@ function element(tag, ...children) {
   return node;
 }
 
-/** A link to `href` reading `text`.
- * @param {string} href
+/** @param {string} href
  * @param {string} text */
 function link(href, text) {
   const anchor = document.createElement("a");
@@ -26,18 +25,14 @@ function link(href, text) {
   return anchor;
 }
 
-/** The name's text with a <wbr> after each hyphen, so a line breaks there and only there: a
- * hyphen before a digit, as in accessibility-16, is otherwise no break opportunity.
- * @param {string} name */
-function breakable(name) {
+/** @param {string} name */
+function withBreakAfterEachHyphen(name) {
   return name
     .split(/(?<=-)/)
     .flatMap((part, index) => (index === 0 ? [part] : [document.createElement("wbr"), part]));
 }
 
-/** The set's section: its heading, what it is, and its glyphs' list, each glyph its module's
- * markup beside its name.
- * @param {import("./catalog.js").CatalogSet} set
+/** @param {import("./catalog.js").CatalogSet} set
  * @param {string[]} glyphs */
 function section(set, glyphs) {
   const heading = element("h2", `${set.title} `, element("code", set.name));
@@ -47,7 +42,6 @@ function section(set, glyphs) {
   const about = element(
     "dl",
     element("dt", "Licence"),
-    // The licence's SPDX identifier, else its title, linked when the set gives a URL.
     element("dd", license.url === undefined ? label : link(license.url, label)),
     element("dt", "Upstream"),
     element("dd", link(`${upstream.repository}/tree/${upstream.tag}`, upstream.tag)),
@@ -61,7 +55,7 @@ function section(set, glyphs) {
       const glyph = element("span");
       glyph.className = "glyph";
       glyph.innerHTML = glyphs[index];
-      const item = element("li", glyph, element("code", ...breakable(name)));
+      const item = element("li", glyph, element("code", ...withBreakAfterEachHyphen(name)));
       item.dataset.icon = `${set.name}/${name}`;
       return item;
     }),

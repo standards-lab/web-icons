@@ -1,13 +1,4 @@
-// Adapted from spike-html-hosting-icons (8b8d955): test/browser/screenshots.test.ts, on
-// web-tooling's web-screenshots bin, without the theme menu's captures.
-// mise run screenshots' command, web-tooling's web-screenshots on scripts/screenshots.config.ts,
-// run as the task runs it: the browse page, light, to the terminal, with TMPDIR a scratch
-// directory of its own and node's compile cache, which writes there too, off. It prints the page's
-// two states' captures, wide and narrow, under that TMPDIR and leaves it empty, and with --keep
-// leaves every capture it printed, so the first run's empty TMPDIR is the output's cleanup, not a
-// capture that never wrote. Neither run writes into the repository. mise run preview's script,
-// scripts/preview.ts, writes into a scratch directory of its own the same bin's first wide tile at
-// the default profile, light and dark, byte for byte, and leaves its TMPDIR empty.
+// Adapted from spike-html-hosting-icons (8b8d955): test/browser/screenshots.test.ts, on web-tooling's web-screenshots, without the theme menu's captures.
 
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
@@ -21,16 +12,12 @@ const config = join(root, "scripts/screenshots.config.ts");
 const bin = join(root, "node_modules/.bin/web-screenshots");
 const preview = join(root, "scripts/preview.ts");
 
-/** The repository's files git doesn't ignore and doesn't track: what a run would leave. */
 const untracked = () =>
   execFileSync("git", ["ls-files", "--others", "--exclude-standard"], {
     cwd: root,
     encoding: "utf8",
   });
 
-/** Runs the bin on the capture file: the browse page, light, to the terminal, the flags after, with
- * TMPDIR a fresh scratch directory; returns what the run printed and left there, each path
- * relative to it, and removes the directory. */
 function capture(...flags: string[]) {
   const dir = mkdtempSync(join(tmpdir(), "screenshots."));
   try {
@@ -101,9 +88,8 @@ describe("mise run screenshots' command", { timeout: 300_000 }, () => {
       assert.deepEqual(readdirSync(out).sort(), ["preview-dark.png", "preview-light.png"]);
       assert.deepEqual(readdirSync(tmp), [], "TMPDIR is left empty");
 
-      // The same capture, every tile kept, to hold each preview to its scheme's first wide tile.
-      const args = [config, "--page", "browse", "--output", "directory", "--dir", shots];
-      const capture = spawnSync(bin, args, { cwd: root, env, encoding: "utf8" });
+      const everyTileKept = [config, "--page", "browse", "--output", "directory", "--dir", shots];
+      const capture = spawnSync(bin, everyTileKept, { cwd: root, env, encoding: "utf8" });
       assert.equal(capture.status, 0, capture.stderr);
       const tiles = readdirSync(shots);
       for (const scheme of ["light", "dark"]) {

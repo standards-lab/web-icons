@@ -1,9 +1,4 @@
 // Adapted from spike-html-hosting-icons (8b8d955): test/unit/generate.test.ts.
-// The generator, scripts/generate.ts: the licence rule on some refused licences; the fixture sets
-// in test/fixtures/sets/, in @iconify-json's layout, generated into scratch directories, so a set's
-// name other than a released one's works, and a CC-BY set is refused, a build of sets that holds
-// one leaving its output empty; and the released Octicons in the dist/ mise run build writes, with
-// their LICENSE byte for byte and its provenance line.
 
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -34,7 +29,6 @@ const root = join(import.meta.dirname, "../..");
 const fixtures = join(root, "test/fixtures/sets");
 const scratches: string[] = [];
 
-/** A new temporary directory, removed after the run. */
 function scratchDir() {
   const scratch = mkdtempSync(join(tmpdir(), "generate-"));
   scratches.push(scratch);
@@ -44,19 +38,15 @@ after(() => {
   for (const scratch of scratches) rmSync(scratch, { recursive: true, force: true });
 });
 
-/** A fixture set as a source: its directory, its LICENSE, and a provenance line. */
 function fixture(name: string): SetSource {
   const dir = join(fixtures, name);
   return { name, dir, license: join(dir, "LICENSE"), provenance: `the ${name} fixture` };
 }
 
-/** The svg string a generated module default-exports, imported as a consumer imports it. */
 async function importIcon(path: string): Promise<unknown> {
   return (await import(pathToFileURL(path).href)).default;
 }
 
-/** The attributes of the one root svg element `svg` is, by name, or undefined when it isn't one
- * complete svg element. */
 function svgAttributes(svg: string): Record<string, string> | undefined {
   const match = svg.match(/^<svg((?:\s+[a-zA-Z:-]+="[^"]*")*)>(.*)<\/svg>$/s);
   if (!match || match[2].includes("<svg")) return undefined;

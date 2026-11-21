@@ -1,10 +1,9 @@
 // Adapted from spike-html-hosting-icons (8b8d955): scripts/generate.ts.
 // The icons generator: an Iconify set, from a directory in @iconify-json/*'s layout (icons.json
 // and info.json), into one ES module per icon default-exporting its svg string, a declaration
-// typing it as a string, and the set's LICENSE with a provenance line. @iconify-json/* ships no
-// licence text, so a released set's LICENSE is the upstream's, held in licenses/<name>/ byte for
-// byte and checked against the sha256 sets.json records. scripts/build.ts runs it on the released
-// sets, and the unit tier on test/fixtures/sets/ too. It reads no network.
+// typing it as a string, and the set's LICENSE with a provenance line. A released set's LICENSE is
+// the upstream's, held in licenses/<name>/ byte for byte and checked against the sha256 sets.json
+// records. It reads no network.
 
 import { createHash } from "node:crypto";
 import { copyFileSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -13,11 +12,7 @@ import { fileURLToPath } from "node:url";
 import type { ExtendedIconifyIcon, IconifyInfo, IconifyJSON } from "@iconify/types";
 import { iconToHTML, iconToSVG, parseIconSet } from "@iconify/utils";
 
-/** The licences whose terms shipping the licence text satisfies, by SPDX identifier: the only ones
- * a set may carry. Any other, CC-BY's and GPL's among them, asks for more than a LICENSE beside
- * the modules (attribution where the icon is shown, or the work's own licence), so its set is
- * refused. */
-const acceptedLicenses = [
+const licensesSatisfiedByTheirText = [
   "MIT",
   "ISC",
   "Apache-2.0",
@@ -28,13 +23,15 @@ const acceptedLicenses = [
 ];
 
 /** Why the set `name`'s licence, as its info.json gives it, isn't one shipping its text satisfies,
- * or undefined when it is. A licence with no SPDX identifier is refused by its title. */
+ * or undefined when it is. A licence outside the accepted SPDX identifiers, CC-BY's and GPL's among
+ * them, asks for more than a LICENSE beside the modules (attribution where the icon is shown, or
+ * the work's own licence). A licence with no SPDX identifier is refused by its title. */
 export function licenseProblem(name: string, license: IconifyInfo["license"]): string | undefined {
   const id = license.spdx;
-  if (id !== undefined && acceptedLicenses.includes(id)) return undefined;
+  if (id !== undefined && licensesSatisfiedByTheirText.includes(id)) return undefined;
   return (
     `icon set ${name} is licensed ${id ?? `"${license.title}" (no SPDX identifier)`}, ` +
-    `which shipping its licence text doesn't satisfy; accepted: ${acceptedLicenses.join(", ")}`
+    `which shipping its licence text doesn't satisfy; accepted: ${licensesSatisfiedByTheirText.join(", ")}`
   );
 }
 
@@ -86,22 +83,17 @@ export function releasedSets(root: string): SetSource[] {
   });
 }
 
-/** Icon names as Iconify writes them, which are safe as file names and as subpaths. */
-const iconName = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const safeFileIconName = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-/** The icon as one complete svg string: its viewBox, 1em square, hidden from assistive technology
- * and out of the tab order, and drawn in currentColor, which the icon's own markup carries. */
 function iconSvg(icon: ExtendedIconifyIcon): string {
   const { attributes, body } = iconToSVG(icon, { width: "1em", height: "1em" });
   return iconToHTML(body, { ...attributes, "aria-hidden": "true", focusable: "false" });
 }
 
-/** An icon module's source: the svg string, its default export. */
 function iconModule(svg: string): string {
   return `export default ${JSON.stringify(svg)};\n`;
 }
 
-/** Every icon module's declaration: its default export is a string. */
 const iconDeclaration = "declare const svg: string;\nexport default svg;\n";
 
 /** The provenance line's file, beside the LICENSE it describes, so the LICENSE stays byte for
@@ -109,7 +101,8 @@ const iconDeclaration = "declare const svg: string;\nexport default svg;\n";
 export const provenanceFile = "LICENSE.provenance";
 
 /** Generates the set into `out`/<name>/: <icon>.js and <icon>.d.ts for every icon and alias the
- * set marks visible; its LICENSE, copied as is; and the provenance line. Throws, generating
+ * set marks visible, each svg 1em square on its viewBox, aria-hidden and unfocusable; its LICENSE,
+ * copied as is; and the provenance line. Throws, generating
  * nothing, on a set whose licence isn't accepted, whose prefix isn't its name, or holding a
  * visible icon whose name isn't a safe file name or whose markup isn't drawn in currentColor.
  * Returns the icon names, sorted.
@@ -133,7 +126,8 @@ export function generateSet(source: SetSource, out: string): string[] {
   parseIconSet(data, (icon, iconData) => {
     if (iconData === null) throw new Error(`icon set ${name}: ${icon} is listed as not found`);
     if (iconData.hidden) return;
-    if (!iconName.test(icon)) throw new Error(`icon set ${name}: ${icon} isn't a safe file name`);
+    if (!safeFileIconName.test(icon))
+      throw new Error(`icon set ${name}: ${icon} isn't a safe file name`);
     const svg = iconSvg(iconData);
     if (!svg.includes("currentColor")) {
       throw new Error(`icon set ${name}: ${icon} isn't drawn in currentColor`);

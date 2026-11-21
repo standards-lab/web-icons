@@ -73,11 +73,17 @@ The architecture pages that apply, in the architecture repository:
 ## Code
 
 - Code meets the bar of spike-html-conventions' `layers/` code at a88828a: a header of about 2–6
-  lines, a one-line doc comment per export, and comments only for a non-obvious why.
-- A copied file names its source repository and commit in a provenance line, which reads
-  `From|Adapted from <repo> (<commit>): <path>`. It names the immediate source alone; that source
-  keeps the earlier lines. A JSON file, which takes no comment, has its line in
-  `context/README.md`.
+  lines and a one-line doc comment per export.
+- Every comment is one of the five kinds in `architecture/principles/comments.md` (package
+  documentation, a suppression's reason, a pin hold's reason, provenance, a reference), in TS, JS,
+  shell, CSS, HTML, tests, and every configuration file (TOML, YAML, JSONC, `.gitignore`,
+  `.prettierignore`). A module's or a script's header and the JSDoc on its exports are its package
+  documentation, the public contract with no reasoning; JSDoc on a non-exported symbol and a
+  test's comments are not. A configuration file's header is a short description plus `See` lines.
+- A copied file names its source repository and commit in a provenance line, one line per source:
+  `From|Adapted from <repo> (<commit>): <path>`, with at most a short clause on what changed. It
+  names the immediate source alone; that source keeps the earlier lines. A JSON file, which takes
+  no comment, has its line in `context/README.md`.
 - Sources use `.ts` relative specifiers, which tsc rewrites; a handwritten `.d.ts` keeps `.js`.
 - Tests are TypeScript run under Node's type stripping, erasable syntax only, type-checked by
   `tsconfig.test.json`; browser-served fixtures stay `.js`.

@@ -1,11 +1,10 @@
-// Adapted from spike-html-hosting-icons (8b8d955): scripts/served.ts, on web-tooling's serve and
-// web-foundation's package.
+// Adapted from spike-html-hosting-icons (8b8d955): scripts/served.ts, on web-tooling's serve and web-foundation's package.
 // What the browse page is served from: the repository root, whose browse/index.html is the page,
 // sent for every extensionless path, so it is /browse/; the built dist/, whose modules the page
 // imports as /dist/<set>/<icon>.js; the foundation, under /deps/, which the page's import map
 // names; and the page's catalog, /browse/catalog.js, made from sets.json, each set's info.json,
 // and dist/ at each request, written to no file. The browser tier, the screenshots description,
-// and mise run browse all serve it through web-tooling's serve, so it is kept here once.
+// and mise run browse all serve it through web-tooling's serve.
 
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";

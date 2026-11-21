@@ -1,13 +1,11 @@
-// Adapted from web-foundation (72e759f): test/unit/release.ts, its licence check, with
-// web-app-sdk's (fbaba50) dependency check for an optional peer and web-components' (a659353)
-// github: tag form for the foundation.
+// Adapted from web-foundation (72e759f): test/unit/release.ts, its licence check.
+// Adapted from web-app-sdk (fbaba50): test/unit/release.ts, its dependency check for an optional peer.
+// Adapted from web-components (a659353): test/unit/release.ts, its github: tag form for the foundation.
 // The release rule: what a pack's package.json and LICENSE must declare. The package is
 // @standards-lab/web-icons, released under Apache 2.0, at a plain x.y.z version; it has no
 // dependency at run time and no install script; its one peer is vite, optional and by a caret
 // range, which its exact dev pin falls within; and web-foundation and web-tooling are
-// devDependencies at a release tag, with no standalone rolldown. test/unit/release.test.ts runs it
-// on a pnpm pack. Which version, range, pin, and tag is package.json's; mise run currency reports
-// each behind its latest.
+// devDependencies at a release tag, with no standalone rolldown.
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
@@ -61,7 +59,6 @@ export function listFiles(dir: string): string[] {
 /** The package's name. */
 export const packageName = "@standards-lab/web-icons";
 
-/** The license every release declares, and the text its LICENSE opens with. */
 const license = "Apache-2.0";
 const licenseHeading = /^\s*Apache License\s+Version 2\.0, January 2004\s/;
 
@@ -81,9 +78,7 @@ export function licenseProblems(root: string): string[] {
   return problems;
 }
 
-/** The scripts a package manager runs when it installs the package, from the registry or from
- * GitHub, where prepare runs too: a release declares none of them. */
-const installScripts = [
+const scriptsRunOnInstallFromRegistryOrGitHub = [
   "preinstall",
   "install",
   "postinstall",
@@ -92,20 +87,14 @@ const installScripts = [
   "postprepare",
 ];
 
-/** The plugin's one peer, optional, so a consumer that imports only icon modules isn't asked for
- * it, and by a caret range, which the repository's own install of it, a devDependency at one exact
- * version, falls within. */
 const vite = "vite";
 const caretRange = /^\^\d+\.\d+\.\d+$/;
 const exactVersion = /^\d+\.\d+\.\d+$/;
 
-/** The devDependencies taken from GitHub, each at one release tag, never a range, a branch, a
- * commit, or a #semver: spec, which bun fails. */
-const taggedDevDependencies = ["@standards-lab/web-foundation", "@standards-lab/web-tooling"];
+const githubTaggedDevDependencies = ["@standards-lab/web-foundation", "@standards-lab/web-tooling"];
 const githubTag = (name: string) =>
   new RegExp(`^github:standards-lab/${name.split("/")[1]}#v\\d+\\.\\d+\\.\\d+$`);
 
-/** A bundler the release never takes on its own: Vite's build is the one the package is held to. */
 const rolldown = "rolldown";
 
 /** Whether the caret range, ^x.y.z, admits the version x.y.z: the same leftmost nonzero part and
@@ -123,9 +112,11 @@ export function caretAdmits(range: string, version: string): boolean {
 }
 
 /** What keeps root, a pack's package/, from declaring the manifest a release needs, one line
- * each: its name and version, no install script, no dependency at run time, vite as its one
- * optional caret-range peer with an exact dev pin inside that range, the foundation and the
- * tooling at their release tags, and no rolldown. */
+ * each: its name and version, no install script (prepare included, which an install from GitHub
+ * runs), no dependency at run time, vite as its one optional caret-range peer, so a consumer that
+ * imports only icon modules isn't asked for it, with an exact dev pin inside that range, the
+ * foundation and the tooling at their release tags (never a range, a branch, a commit, or a
+ * #semver: spec, which bun fails), and no standalone rolldown, Vite's build being the bundler. */
 export function manifestProblems(root: string): string[] {
   const problems: string[] = [];
   const manifest = readManifest(root);
@@ -136,7 +127,7 @@ export function manifestProblems(root: string): string[] {
     problems.push(`package.json declares version ${manifest.version}, not x.y.z`);
   }
   for (const script of Object.keys(manifest.scripts ?? {})) {
-    if (installScripts.includes(script)) {
+    if (scriptsRunOnInstallFromRegistryOrGitHub.includes(script)) {
       problems.push(`package.json declares the install script ${script}`);
     }
   }
@@ -174,7 +165,7 @@ export function manifestProblems(root: string): string[] {
     problems.push(`package.json's devDependency ${vite} ${pin} is outside its peer range ${range}`);
   }
 
-  for (const name of taggedDevDependencies) {
+  for (const name of githubTaggedDevDependencies) {
     if (!(name in dev)) problems.push(`package.json doesn't declare devDependency ${name}`);
     else if (!githubTag(name).test(dev[name])) {
       problems.push(

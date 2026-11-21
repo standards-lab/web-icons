@@ -1,9 +1,4 @@
-// Adapted from spike-html-hosting-icons (8b8d955): test/unit/pack.test.ts, its manifest's case
-// moved to the release rule (test/unit/release.test.ts).
-// The pack: pnpm pack's tarball of the dist/ mise run build writes, extracted into a scratch
-// consumer's node_modules: its files, never the browse page or its scripts; an icon and the plugin
-// resolving from it in node and under TypeScript's types condition; and the plugin filling a
-// marker from the installed package's own icons with no Vite installed. It reads no network.
+// Adapted from spike-html-hosting-icons (8b8d955): test/unit/pack.test.ts, its manifest's case moved to test/unit/release.test.ts.
 
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
@@ -19,7 +14,6 @@ const root = join(import.meta.dirname, "../..");
 const icon = `${name}/octicon/x-16`;
 const plugin = `${name}/vite`;
 
-// The consumer: a scratch directory with the tarball's package/ as its installed package.
 let scratch: string;
 let consumer: string;
 let installed: string;
@@ -34,8 +28,6 @@ before(() => {
 });
 after(() => rmSync(scratch, { recursive: true, force: true }));
 
-/** What node resolves `specifier` to from the consumer, under `conditions`, relative to the
- * installed package. */
 function resolveFromConsumer(specifier: string, conditions: string[] = []): string {
   const url = execFileSync(
     process.execPath,
@@ -51,7 +43,6 @@ function resolveFromConsumer(specifier: string, conditions: string[] = []): stri
   return relative(installed, fileURLToPath(url)).split(sep).join("/");
 }
 
-/** What node prints running `script`, a module, from the consumer, `specifier` its argument. */
 function runInConsumer(script: string, specifier: string): string {
   return execFileSync(process.execPath, ["--input-type=module", "-e", script, specifier], {
     cwd: consumer,
@@ -59,11 +50,9 @@ function runInConsumer(script: string, specifier: string): string {
   });
 }
 
-/** The default export of `specifier`, a string, as node imports it from the consumer. */
 const importInConsumer = (specifier: string): string =>
   runInConsumer("process.stdout.write((await import(process.argv[1])).default)", specifier);
 
-/** TypeScript's diagnostics on `source`, a consumer module, under node's module resolution. */
 function typeCheck(source: string): { messages: string[]; declarations: string[] } {
   const file = join(consumer, "consumer.ts");
   writeFileSync(file, source);
