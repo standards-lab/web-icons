@@ -84,9 +84,11 @@ code, JSON, and CSS files are let back in. Prettier also skips what `.gitignore`
   with that repository's latest release. `typescript` is held to the newest version
   typescript-eslint's peer range accepts. A peer (vite) is by a caret range, which must admit its
   latest release, so a consumer can install it beside the icons; the range is judged by the
-  release rule's own `caretAdmits`. A pin held back from its latest is named, with its reason, in
-  `mise.toml`'s `HOLDS` list, one `<item> <pin>: <reason>` line each; the script still reports it,
-  ending `held: <reason>`, and exits 0 when every pin it reports is held.
+  release rule's own `caretAdmits`. A held pin sits in `mise.toml`'s `HOLDS` list, as rolling
+  currency's
+  [A held pin](https://github.com/standards-lab/architecture/blob/main/principles/rolling-currency.md#a-held-pin)
+  defines it. The script reports a held pin with a line ending `held: <reason>`, and exits 0 when
+  every pin it reports is held.
 - `scripts/preview.ts` passes no facet flag, so the capture is the default profile, and no
   `--scheme`, so it is light and dark. A page that fits a single tile has one capture, which
   stands in for its first tile.
