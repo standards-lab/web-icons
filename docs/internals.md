@@ -33,10 +33,10 @@ their `See docs/internals.md` lines point at.
 - `unrs-resolver`, under eslint-plugin-import-x and eslint-import-resolver-typescript, has a
   postinstall that fetches its native binding when the optional dependency holding it is missing.
   pnpm installs that dependency, so the script isn't run (`allowBuilds`).
-- `minimumReleaseAge: 0` turns off pnpm's default wait of a day before it installs a release. The
-  currency task moves each pin to its latest release, and that release's notes are read before
-  the bump lands, a review that stands in for the age gate; with the wait on, a frozen install of
-  a lockfile that pins a release under a day old fails.
+- `minimumReleaseAge: 0` is Web Elemental's
+  [narrowing](../../architecture/standards/web-elemental/principles/packages-and-releases.md#pins)
+  of rolling currency's [Why a release installs the day it
+  ships](../../architecture/principles/rolling-currency.md#why-a-release-installs-the-day-it-ships).
 
 ## Format (`.prettierignore`)
 

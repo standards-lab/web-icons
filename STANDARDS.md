@@ -1,12 +1,9 @@
-<!-- Adapted from spike-html-hosting-icons (8b8d955): STANDARDS.md, for web-icons. -->
-<!-- Adapted from web-foundation (72e759f): STANDARDS.md, its shape. -->
-
 # web-icons standards
 
 The judgement calls the standards-reviewer applies to web-icons, beyond what `mise run check`
 enforces: each one line, with a pointer to the architecture page that applies where one does. What
-the check enforces is never restated here. The `standard` task points them at the Web Elemental
-standard once it is founded (`standards-lab/context/web-client.md`, "Toward Web Elemental").
+the check enforces is never restated here. web-icons is a Web Elemental member
+(`architecture/standards/web-elemental/README.md`).
 
 The architecture pages that apply, in the architecture repository:
 
@@ -60,26 +57,14 @@ The architecture pages that apply, in the architecture repository:
 - The package is `@standards-lab/web-icons`, the icon layer of the web client stack
   (`architecture/principles/minimal-footprint.md`).
 - The browse page and what serves it are dev-only, and never in the pack.
-- `dist/` lives only in a release tag's tree, the pack, never on a branch.
-- Releases are plain `vX.Y.Z` annotated tags on a pack commit whose one parent is main's merge
-  commit, cut by hand on a green check from `package.json`'s version, each with its `CHANGELOG.md`
-  section, and never changed or re-cut; the release workflow, dispatched by hand with the pushed
-  tag and never on a push, only verifies and publishes it (`standards-lab/context/web-client.md`,
-  "Packaging and release"; `architecture/principles/independent-releases.md`).
-- A layer resolves another only through its release tag, as a consumer does: never a link, path
-  alias, source condition, or project reference
-  (`architecture/principles/independent-releases.md`).
+- Its releases, `dist/`, how it resolves another layer, and its pins follow
+  `architecture/standards/web-elemental/principles/packages-and-releases.md`.
 
 ## Code
 
 - A module's or a script's header documents the public contract, what it provides and promises,
   with no reasoning. A script's sections become named functions. A lint directive carries its
   reason as its `--` description.
-- A copied file names each source repository and commit in one provenance line per source, which
-  reads `From|Adapted from <repo> (<commit>): <path>`, plus at most a short clause naming what
-  changed, never why, and a third-party source's licence after a semicolon. The lines its immediate
-  source carried for earlier sources stay beside that source's own. A JSON file, which takes no
-  comment, has its line in `context/README.md`.
 - Sources use `.ts` relative specifiers, which tsc rewrites; a handwritten `.d.ts` keeps `.js`.
 - Tests are TypeScript run under Node's type stripping, erasable syntax only, type-checked by
   `tsconfig.test.json`; browser-served fixtures stay `.js`.
