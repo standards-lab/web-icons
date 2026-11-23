@@ -14,7 +14,13 @@ stale=0
 holds=${HOLDS:-}
 
 held() {
-  grep -m1 "^$1 $2: " <<<"$holds" | cut -d: -f2- | sed 's/^ //' || true
+  local prefix="$1 $2: " hold
+  while IFS= read -r hold; do
+    if [[ $hold == "$prefix"* ]]; then
+      echo "${hold#"$prefix"}"
+      return
+    fi
+  done <<<"$holds"
 }
 
 report() {
