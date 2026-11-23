@@ -34,9 +34,9 @@ their `See docs/internals.md` lines point at.
   postinstall that fetches its native binding when the optional dependency holding it is missing.
   pnpm installs that dependency, so the script isn't run (`allowBuilds`).
 - `minimumReleaseAge: 0` is Web Elemental's
-  [narrowing](../../architecture/standards/web-elemental/principles/packages-and-releases.md#pins)
+  [narrowing](https://github.com/standards-lab/architecture/blob/main/standards/web-elemental/principles/packages-and-releases.md#pins)
   of rolling currency's [Why a release installs the day it
-  ships](../../architecture/principles/rolling-currency.md#why-a-release-installs-the-day-it-ships).
+  ships](https://github.com/standards-lab/architecture/blob/main/principles/rolling-currency.md#why-a-release-installs-the-day-it-ships).
 
 ## Format (`.prettierignore`)
 
