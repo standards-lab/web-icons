@@ -1,6 +1,3 @@
-// Adapted from web-foundation (72e759f): test/unit/release.ts, its licence check.
-// Adapted from web-app-sdk (fbaba50): test/unit/release.ts, its dependency check for an optional peer.
-// Adapted from web-components (a659353): test/unit/release.ts, its github: tag form for the foundation.
 // The release rule: what a pack's package.json and LICENSE must declare. The package is
 // @standards-lab/web-icons, released under Apache 2.0, at a plain x.y.z version; it has no
 // dependency at run time and no install script; its one peer is vite, optional and by a caret

@@ -1,4 +1,3 @@
-// Adapted from spike-html-hosting-icons (8b8d955): scripts/served.ts, on web-tooling's serve and web-foundation's package.
 // What the browse page is served from: the repository root, whose browse/index.html is the page,
 // sent for every extensionless path, so it is /browse/; the built dist/, whose modules the page
 // imports as /dist/<set>/<icon>.js; the foundation, under /deps/, which the page's import map

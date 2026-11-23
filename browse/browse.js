@@ -1,4 +1,3 @@
-// Adapted from spike-html-hosting-icons (8b8d955): browse/browse.js.
 // The browse page's module: a section for each released set, in the catalog's order, headed by
 // its title and prefix, with its licence and its upstream, then its glyphs, each the built
 // module's default export, imported as a consumer imports it, set as the markup of its cell beside

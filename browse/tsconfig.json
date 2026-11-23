@@ -1,4 +1,3 @@
-// Adapted from spike-html-hosting-icons (8b8d955): browse/tsconfig.json, checking JavaScript.
 // The type check of the browse page's modules under the DOM's lib, never emitting.
 {
   "extends": "../tsconfig.json",

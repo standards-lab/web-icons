@@ -1,4 +1,3 @@
-// Adapted from web-foundation (72e759f): demo/choice.js, on bare specifiers, showing the root's applied profile.
 // The browse page's controls, a dev page's and not a package feature: each select of the page's
 // form[data-choice], named for a key of a choice, lists the names this page registered (the
 // schemes for scheme), and a change applies and saves the whole choice through the foundation's

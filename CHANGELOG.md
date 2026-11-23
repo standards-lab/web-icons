@@ -1,6 +1,3 @@
-<!-- Adapted from web-foundation (72e759f): CHANGELOG.md, for @standards-lab/web-icons, with none
-of web-foundation's versions. -->
-
 # Changelog
 
 All notable changes to `@standards-lab/web-icons` are documented here. The format follows

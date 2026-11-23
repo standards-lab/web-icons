@@ -1,4 +1,3 @@
-// Adapted from spike-html-hosting-sdk (f49087e): src/icons.ts, its fill a Vite plugin loading this package's icons.
 // The marker fill, iconFill(), from @standards-lab/web-icons/vite: in every HTML page Vite serves
 // in dev or writes at build, each glyph marker, an empty <svg data-icon="<set>/<name>"></svg>, is
 // replaced by that icon's svg, and the page gains no script. A marker this package can't fill, or

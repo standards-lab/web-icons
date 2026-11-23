@@ -1,4 +1,3 @@
-// Adapted from spike-html-hosting-icons (8b8d955): scripts/browse.ts, on web-tooling's serve.
 // mise run browse: the browse page, served as the browser tier serves it, by scripts/served.ts, on
 // a free loopback port, until SIGINT or SIGTERM stops it. Prints the page's URL.
 
