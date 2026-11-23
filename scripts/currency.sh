@@ -1,29 +1,58 @@
 #!/usr/bin/env bash
 # Adapted from web-foundation (72e759f): scripts/currency.sh.
 # Adapted from web-app-sdk (fbaba50): scripts/currency.sh, its peer range check.
+# Adapted from web-components (3f32a8f): scripts/currency.sh, its HOLDS list.
 # Prints `<where>: <item> <pin> -> <latest>` for each mise tool, package.json dependency (the
 # @iconify-json sets and vite among them), GitHub Actions pin, and github: devDependency's tag
 # behind its latest, and the optional vite peer's range when it doesn't admit vite's latest
-# release, and exits 1 if any; prints nothing when all are current. Reads the network.
+# release. A pin the HOLDS list names, `<item> <pin>: <reason>`, is reported with
+# `held: <reason>`. Exits 1 if it reports any pin that isn't held; prints nothing when all are
+# current. Reads the network.
 # See docs/internals.md
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-mise_tools_trailing() {
-  local outdated
-  outdated=$(MISE_LOG_LEVEL=error mise outdated --bump --local --json) || return
-  node -p '
-    Object.entries(JSON.parse(process.argv[1]))
-      .map(([tool, { requested, bump }]) => "mise.toml: " + [tool, requested, "->", bump].join(" "))
-      .join("\n")
-  ' "$outdated"
+trailing=""
+stale=0
+holds=${HOLDS:-}
+
+held() {
+  grep -m1 "^$1 $2: " <<<"$holds" | cut -d: -f2- | sed 's/^ //' || true
 }
 
-github_release_tag_trailing() {
+report() {
+  trailing+=$'\n'"$1"
+}
+
+report_pin() {
+  local line=$1 reason=$2
+  if [[ -n $reason ]]; then
+    report "$line held: $reason"
+  else
+    report "$line"
+    stale=1
+  fi
+}
+
+report_mise_tools() {
+  local outdated lines tool requested bump
+  outdated=$(MISE_LOG_LEVEL=error mise outdated --bump --local --json) || return
+  lines=$(node -p '
+    Object.entries(JSON.parse(process.argv[1]))
+      .map(([tool, { requested, bump }]) => [tool, requested, bump].join(" "))
+      .join("\n")
+  ' "$outdated") || return
+  while read -r tool requested bump; do
+    [[ -n $tool ]] || continue
+    report_pin "mise.toml: $tool $requested -> $bump" "$(held "$tool" "$requested")"
+  done <<<"$lines"
+}
+
+report_release_tag() {
   local package=$1 spec=${2#github:} latest
   latest=$(gh api "repos/${spec%%#*}/releases/latest" --jq .tag_name) || return
   if [[ ${spec#*#} != "$latest" ]]; then
-    echo "package.json: $package ${spec#*#} -> $latest"
+    report_pin "package.json: $package ${spec#*#} -> $latest" "$(held "$package" "${spec#*#}")"
   fi
 }
 
@@ -44,7 +73,7 @@ latest_release() {
   fi
 }
 
-peer_range_trailing() {
+report_peer_range() {
   local package=$1 latest=$2 range
   range=$(node -p 'require("./package.json").peerDependencies?.[process.argv[1]] ?? ""' "$package") ||
     return
@@ -52,11 +81,11 @@ peer_range_trailing() {
     import { caretAdmits } from "./test/unit/release.ts";
     process.exit(caretAdmits(...process.argv.slice(1)) ? 0 : 1);
   ' "$range" "$latest"; then
-    echo "package.json: peer $package $range -> ^$latest"
+    report_pin "package.json: peer $package $range -> ^$latest" "$(held "peer $package" "$range")"
   fi
 }
 
-packages_trailing() {
+report_packages() {
   local pins package pin latest
   pins=$(node -p '
     const { dependencies, devDependencies } = require("./package.json");
@@ -66,38 +95,38 @@ packages_trailing() {
   ') || return
   while read -r package pin; do
     if [[ $pin == github:* ]]; then
-      github_release_tag_trailing "$package" "$pin" || return
+      report_release_tag "$package" "$pin" || return
       continue
     fi
     latest=$(latest_release "$package") || return
     if [[ $pin != "$latest" ]]; then
-      echo "package.json: $package $pin -> $latest"
+      report_pin "package.json: $package $pin -> $latest" "$(held "$package" "$pin")"
     fi
-    peer_range_trailing "$package" "$latest" || return
+    report_peer_range "$package" "$latest" || return
   done <<<"$pins"
 }
 
-workflow_actions_trailing() {
-  local uses="" action repo latest
-  if compgen -G '.github/workflows/*.yml' >/dev/null; then
-    uses=$(grep -ho 'uses: *[^ ]*@[^ ]*' .github/workflows/*.yml | sed 's/uses: *//' | sort -u) ||
-      return
-  fi
+report_actions() {
+  local uses action repo latest
+  compgen -G '.github/workflows/*.yml' >/dev/null || return 0
+  uses=$(grep -ho 'uses: *[^ ]*@[^ ]*' .github/workflows/*.yml | sed 's/uses: *//' | sort -u) ||
+    return
   while read -r action; do
     [[ -n $action ]] || continue
     repo=$(cut -d/ -f1,2 <<<"${action%@*}") || return
     latest=$(gh api "repos/$repo/releases/latest" --jq .tag_name) || return
     if [[ ${action#*@} != "$latest" ]]; then
-      echo ".github/workflows: ${action%@*} ${action#*@} -> $latest"
+      report_pin ".github/workflows: ${action%@*} ${action#*@} -> $latest" \
+        "$(held "${action%@*}" "${action#*@}")"
     fi
   done <<<"$uses"
 }
 
-trailing=$(mise_tools_trailing)
-trailing+=$'\n'$(packages_trailing)
-trailing+=$'\n'$(workflow_actions_trailing)
+report_mise_tools
+report_packages
+report_actions
 
 if [[ -n ${trailing//$'\n'/} ]]; then
   sed '/^$/d' <<<"$trailing"
-  exit 1
 fi
+exit "$stale"

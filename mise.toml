@@ -5,11 +5,16 @@
 [settings]
 task.run_auto_install = false
 
+[env]
+HOLDS = '''
+@iconify-json/octicon 1.2.40: 1.2.41 follows untagged primer/octicons main, after @primer/octicons@19.42.0, and each set records an upstream tag
+'''
+
 [tools]
-"github:standards-lab/claude-plugins" = { version = "0.22.0", version_prefix = "marathon/v" }
+"github:standards-lab/claude-plugins" = { version = "0.24.0", version_prefix = "marathon/v" }
 actionlint = "1.7.12"
 node = "26.13.1"
-pnpm = "12.21.0"
+pnpm = "12.23.0"
 shellcheck = "0.11.0"
 "github:microsoft/typescript-go" = { version = "7.0.2", version_prefix = "typescript/v", bin_path = "package/lib" }
 
@@ -111,6 +116,6 @@ description = "Install the pins and node_modules, the foundation and the tooling
 run = ["mise install", "pnpm install --frozen-lockfile"]
 
 [tasks.currency]
-description = "Report every mise tool, package.json pin, action pin, the vite peer's range, and the foundation's and the tooling's tags behind its latest, exiting nonzero if any; reads the network"
+description = "Report every mise tool, package.json pin, action pin, the vite peer's range, and the foundation's and the tooling's tags behind its latest, a held one with its HOLDS reason, exiting nonzero if any is not held; reads the network"
 run = "scripts/currency.sh"
 quiet = true
