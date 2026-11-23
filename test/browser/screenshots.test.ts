@@ -1,5 +1,3 @@
-// Adapted from spike-html-hosting-icons (8b8d955): test/browser/screenshots.test.ts, on web-tooling's web-screenshots, without the theme menu's captures.
-
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";

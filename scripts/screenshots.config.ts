@@ -1,4 +1,3 @@
-// Adapted from spike-html-hosting-icons (8b8d955): scripts/screenshots.config.ts, on web-tooling's web-screenshots, without the theme menu's captures.
 // mise run screenshots' description, which web-tooling's web-screenshots reads: the browse page,
 // whole, in tiles, wide and narrow; the profile's facets, palette, space, and type, at zen,
 // regular, and mono; --all's profiles, every palette at the defaults, then compact and sans at

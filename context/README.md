@@ -9,8 +9,7 @@ web-components.
 
 It is a package under the `@standards-lab` scope, released by a plain `vX.Y.Z` tag. Its goals live
 in the coordinator's roadmap (`standards-lab/roadmap/index.toml`, v1.client.stack), and its
-strategy is `standards-lab/context/web-client.md`. README.md's "Provenance" section names the
-spikes it is seeded from.
+strategy is `standards-lab/context/web-client.md`.
 
 ## Release
 
@@ -20,25 +19,11 @@ README.md's "Release" section gives the steps and what the workflow verifies.
 
 ## Provenance
 
-Each copied file that takes comments names each of its sources in a provenance line. These files
-take none, so their provenance is here:
+The lineage of its files is in the workspace's [references catalog](https://github.com/standards-lab/org/blob/main/references.md).
 
-- `package.json` is adapted from web-foundation (72e759f): package.json, renamed
-  `@standards-lab/web-icons`, exporting the icons by `<set>/<name>` and the plugin by `vite`, with
-  vite an optional peer and the generator's devDependencies added.
-- `.prettierrc.json` is from web-foundation (72e759f): .prettierrc.json.
-- `pnpm-lock.yaml` is generated, by `pnpm install` on the pins web-foundation (72e759f) carries,
-  and the icons' own.
-- `sets.json` is from spike-html-hosting-icons (8b8d955): sets.json, recording
-  `licenses/octicon/LICENSE`'s sha256 and its source.
-- `test/fixtures/sets/tiny/info.json`, `test/fixtures/sets/tiny/LICENSE`,
-  `test/fixtures/sets/attrib/icons.json`, and `test/fixtures/sets/attrib/info.json` are from
-  spike-html-hosting-icons (8b8d955), the generator's fixture sets in `@iconify-json`'s layout.
-- `test/fixtures/sets/tiny/icons.json` is adapted from spike-html-hosting-icons (8b8d955):
-  test/fixtures/sets/tiny/icons.json, with `halo`, an alias of a hidden icon, which doesn't ship.
-- `licenses/octicon/LICENSE` is primer/octicons' LICENSE at commit 9a274e2 (tag
-  `@primer/octicons@19.42.0`), byte for byte, recorded in `sets.json` and shipped beside the
-  modules with `LICENSE.provenance`, which the build writes.
+`licenses/octicon/LICENSE` is primer/octicons' LICENSE at commit 9a274e2 (tag
+`@primer/octicons@19.42.0`), byte for byte, recorded in `sets.json` and shipped beside the
+modules with `LICENSE.provenance`, which the build writes.
 
 ## Capability map
 

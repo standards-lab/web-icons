@@ -1,4 +1,3 @@
-// Adapted from spike-html-hosting-icons (8b8d955): browse/catalog.d.ts.
 // The browse page's catalog, /browse/catalog.js, which scripts/served.ts makes at its request and
 // no file holds: its declaration, which served.ts's catalog() is typed by too.
 

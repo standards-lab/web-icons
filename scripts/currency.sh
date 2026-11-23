@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Adapted from web-foundation (72e759f): scripts/currency.sh.
-# Adapted from web-app-sdk (fbaba50): scripts/currency.sh, its peer range check.
-# Adapted from web-components (3f32a8f): scripts/currency.sh, its HOLDS list.
 # Prints `<where>: <item> <pin> -> <latest>` for each mise tool, package.json dependency (the
 # @iconify-json sets and vite among them), GitHub Actions pin, and github: devDependency's tag
 # behind its latest, and the optional vite peer's range when it doesn't admit vite's latest

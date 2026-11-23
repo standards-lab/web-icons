@@ -1,5 +1,3 @@
-// Adapted from spike-html-hosting-icons (8b8d955): test/unit/pack.test.ts, its manifest's case moved to test/unit/release.test.ts.
-
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs";

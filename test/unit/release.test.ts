@@ -1,5 +1,3 @@
-// Adapted from web-foundation (72e759f): test/unit/release.test.ts, on the manifest's rule.
-
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";

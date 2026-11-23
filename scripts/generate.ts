@@ -1,4 +1,3 @@
-// Adapted from spike-html-hosting-icons (8b8d955): scripts/generate.ts.
 // The icons generator: an Iconify set, from a directory in @iconify-json/*'s layout (icons.json
 // and info.json), into one ES module per icon default-exporting its svg string, a declaration
 // typing it as a string, and the set's LICENSE with a provenance line. A released set's LICENSE is

@@ -1,4 +1,3 @@
-# Adapted from web-foundation (72e759f): .prettierignore, without its reference sheets.
 # The files Prettier leaves alone: every file but the code, the JSON, and the stylesheets.
 # See docs/internals.md
 *

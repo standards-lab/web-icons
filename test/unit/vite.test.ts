@@ -1,5 +1,3 @@
-// Adapted from spike-html-hosting-sdk (f49087e): test/unit/icons.test.ts, its cases run through the plugin and fixture Vite projects.
-
 import assert from "node:assert/strict";
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

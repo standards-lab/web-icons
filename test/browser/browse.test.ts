@@ -1,5 +1,3 @@
-// Adapted from spike-html-hosting-icons (8b8d955): test/browser/browse.test.ts, on web-tooling, with the selects' cases in place of the theme menu.
-
 import assert from "node:assert/strict";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

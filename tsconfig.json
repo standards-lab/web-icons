@@ -1,4 +1,3 @@
-// Adapted from web-foundation (72e759f): tsconfig.json, for the plugin, which runs on node.
 // The build of the plugin: src/ into dist/, beside the generated sets, each module's .js and .d.ts.
 {
   "compilerOptions": {

@@ -1,7 +1,3 @@
-<!-- Adapted from spike-html-hosting-icons (8b8d955): README.md, for @standards-lab/web-icons. -->
-<!-- Adapted from web-foundation (72e759f): README.md, its shape. -->
-<!-- Adapted from spike-html-hosting-sdk (f49087e): README.md, its marker fill. -->
-
 # web-icons
 
 The icons of the standards-lab web client stack, and its iconography convention: every web client
@@ -179,13 +175,7 @@ changed or re-cut.
 
 ## Provenance
 
-The package is seeded by copy from spike-html-hosting-icons at 8b8d955: the generator, its tests and
-fixture sets, and the browse page and what serves it. The marker fill comes from
-spike-html-hosting-sdk at f49087e, its `src/icons.ts`, made a Vite plugin of its own that fills in
-dev as well as at build. The scaffold, the workflows, this README's shape, the CHANGELOG, and the
-browse page's selects come from web-foundation at 72e759f. Both spikes are archived and never a
-dependency. Each copied file that takes comments names each of its sources in a provenance line; the
-JSON files' provenance is in `context/README.md`.
+The package's lineage is in the workspace's [references catalog](https://github.com/standards-lab/org/blob/main/references.md).
 
 ## License
 

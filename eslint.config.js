@@ -1,5 +1,3 @@
-// Adapted from web-foundation (72e759f): eslint.config.js, its layer table cut to the icons'.
-// Adapted from web-components (a659353): eslint.config.js, its policies naming a package.
 // The lint the check runs: the recommended rules, every suppression's reason, the layer's imports
 // in src/, and every .css import a CSS module script.
 // See docs/internals.md

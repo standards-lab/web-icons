@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Adapted from web-foundation (72e759f): scripts/preflight.sh, with the packages the build reads.
 # Fails naming mise run install when a tool a task needs is missing: the node_modules tooling, the
 # packages the generator reads (@iconify/utils and each @iconify-json set sets.json lists), and
 # with `browser`, the pinned chrome-headless-shell at its pinned version.

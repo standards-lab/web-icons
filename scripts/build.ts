@@ -1,4 +1,3 @@
-// Adapted from spike-html-hosting-icons (8b8d955): scripts/build.ts.
 // The build (mise run build, and the check's): every released set, as sets.json lists them,
 // generated into a fresh dist/ by scripts/generate.ts. A set the generator refuses fails the build,
 // naming the set and its licence, and leaves dist/ empty, the sets before it removed too.

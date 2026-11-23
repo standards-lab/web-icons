@@ -1,5 +1,3 @@
-// Adapted from spike-html-hosting-icons (8b8d955): test/unit/generate.test.ts.
-
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import {
