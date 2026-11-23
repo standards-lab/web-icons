@@ -19,7 +19,7 @@ README.md's "Release" section gives the steps and what the workflow verifies.
 
 ## Provenance
 
-The lineage of its files is in the workspace's [references catalog](https://github.com/standards-lab/org/blob/main/references.md).
+The package's lineage is in the workspace's [references catalog](https://github.com/standards-lab/org/blob/main/references.md).
 
 `licenses/octicon/LICENSE` is primer/octicons' LICENSE at commit 9a274e2 (tag
 `@primer/octicons@19.42.0`), byte for byte, recorded in `sets.json` and shipped beside the
